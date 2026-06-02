@@ -1,0 +1,6 @@
+@QuitQ_HostAddress = http://localhost:5083
+
+GET {{QuitQ_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
