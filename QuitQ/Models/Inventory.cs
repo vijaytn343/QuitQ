@@ -10,7 +10,7 @@
 
         public DateTime LastUpdated { get; set; } = DateTime.Now;
 
-        // Navigation Property
+        
 
         // One Inventory -> One Product
         public Product? Product { get; set; }

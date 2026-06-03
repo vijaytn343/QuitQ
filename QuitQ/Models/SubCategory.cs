@@ -10,8 +10,7 @@
 
         public string? Description { get; set; }
 
-        // Navigation Properties
-
+      
         // Many SubCategories -> One Category
         public Category? Category { get; set; }
 

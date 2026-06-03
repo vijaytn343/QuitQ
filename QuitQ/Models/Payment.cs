@@ -16,7 +16,7 @@
 
         public string? TransactionId { get; set; }
 
-        // Navigation Property
+      
 
         // Many Payments -> One Order
         public Order? Order { get; set; }

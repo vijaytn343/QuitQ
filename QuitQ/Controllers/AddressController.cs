@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using QuitQ.DTOs.AddressDTOs;
 using QuitQ.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace QuitQ.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AddressController : ControllerBase

@@ -15,7 +15,7 @@
 
         public decimal TotalAmount { get; set; }
 
-        // Navigation Properties
+      
 
         // Many Orders -> One User
         public User? User { get; set; }

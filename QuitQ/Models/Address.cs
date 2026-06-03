@@ -16,12 +16,10 @@
 
         public string Country { get; set; } = string.Empty;
 
-        // Navigation Properties
-
-        // Many Addresses -> One User
+      
         public User? User { get; set; }
 
-        // One Address -> Many Orders
+       
         public ICollection<Order>? Orders { get; set; }
     }
 }

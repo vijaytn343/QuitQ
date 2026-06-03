@@ -12,7 +12,6 @@
 
         public decimal PriceAtPurchase { get; set; }
 
-        // Navigation Properties
 
         // Many OrderItems -> One Order
         public Order? Order { get; set; }

@@ -10,12 +10,10 @@
 
         public int Quantity { get; set; }
 
-        // Navigation Properties
-
-        // Many CartItems -> One Cart
+       
         public Cart? Cart { get; set; }
 
-        // Many CartItems -> One Product
+        
         public Product? Product { get; set; }
     }
 }

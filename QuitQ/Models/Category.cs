@@ -8,9 +8,9 @@
 
         public string? Description { get; set; }
 
-        // Navigation Property
+      
 
-        // One Category -> Many SubCategories
+     
         public ICollection<SubCategory>? SubCategories { get; set; }
     }
 

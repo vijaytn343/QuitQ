@@ -24,7 +24,7 @@
 
         public bool IsActive { get; set; } = true;
 
-        // Navigation Properties
+      
 
         // Many Products -> One Seller
         public Seller? Seller { get; set; }

@@ -20,7 +20,7 @@
 
         public bool IsActive { get; set; } = true;
 
-        // Navigation Properties
+      
 
         // Many Users -> One Role
         public Role? Role { get; set; }
