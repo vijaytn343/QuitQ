@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 //using Microsoft.OpenApi.Models;
 
 using QuitQ.Data;
+using QuitQ.Middleware;
 using QuitQ.Services;
 using QuitQ.Services.Interfaces;
 using System.Text;
@@ -86,6 +87,9 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+builder.Services.AddProblemDetails();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -100,7 +104,7 @@ if (app.Environment.IsDevelopment())
         options.RoutePrefix = string.Empty;
     });
 }
-
+app.UseExceptionHandler();
 app.UseHttpsRedirection(); 
 
 app.UseAuthentication();

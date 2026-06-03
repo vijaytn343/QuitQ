@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace QuitQ.Controllers
 {
-    [Authorize]
+   // [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AddressController : ControllerBase
