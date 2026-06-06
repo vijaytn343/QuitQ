@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using QuitQ.DTOs.UserDTOs;
 using QuitQ.Services.Interfaces;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace QuitQ.Controllers
 {
@@ -14,14 +17,14 @@ namespace QuitQ.Controllers
         {
             _userService = userService;
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var users = await _userService.GetAllUsersAsync();
             return Ok(users);
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -32,18 +35,37 @@ namespace QuitQ.Controllers
 
             return Ok(user);
         }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, UserUpdateDTO dto)
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
         {
-            var updated = await _userService.UpdateUserAsync(id, dto);
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!
+                    .Value);
+
+            var user = await _userService.GetUserByIdAsync(userId);
+
+            if (user == null)
+                return NotFound();
+
+            return Ok(user);
+        }
+
+        [Authorize]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id,UserUpdateDTO dto)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var updated = await _userService
+                .UpdateUserAsync(userId,id,dto);
 
             if (!updated)
                 return NotFound();
 
             return NoContent();
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

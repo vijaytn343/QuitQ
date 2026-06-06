@@ -64,11 +64,16 @@ namespace QuitQ.Services
                 })
                 .FirstOrDefaultAsync();
         }
-        public async Task<ProductResponseDTO> CreateProductAsync(ProductCreateDTO dto)
+        public async Task<ProductResponseDTO> CreateProductAsync(int userId,ProductCreateDTO dto)
         {
+            var seller = await _context.Sellers.FirstOrDefaultAsync(s => s.UserId == userId);
+
+            if (seller == null)
+                throw new Exception("Seller profile not found.");
+
             var product = new Product
             {
-                SellerId = dto.SellerId,
+                SellerId = seller.SellerId,
                 SubCategoryId = dto.SubCategoryId,
                 ProductName = dto.ProductName,
                 Description = dto.Description,
@@ -122,9 +127,20 @@ namespace QuitQ.Services
                 SellerName = savedProduct.Seller!.StoreName
             };
         }
-        public async Task<bool> UpdateProductAsync(int id, ProductUpdateDTO dto)
+        public async Task<bool> UpdateProductAsync(int userId,int productId, ProductUpdateDTO dto)
         {
-            var product = await _context.Products.FindAsync(id);
+            var seller = await _context.Sellers.FirstOrDefaultAsync(s => s.UserId == userId);
+
+            if (seller == null)
+                return false;
+
+            var product = await _context.Products
+                .FirstOrDefaultAsync(p =>
+                    p.ProductId == productId &&
+                    p.SellerId == seller.SellerId);
+
+            if (product == null)
+                return false;
 
             if (product == null)
                 return false;
@@ -152,9 +168,14 @@ namespace QuitQ.Services
             return true;
         }
 
-        public async Task<bool> DeleteProductAsync(int id)
+        public async Task<bool> DeleteProductAsync(int userId,int productId)
         {
-            var product = await _context.Products.FindAsync(id);
+            var seller = await _context.Sellers.FirstOrDefaultAsync(s => s.UserId == userId);
+
+            if (seller == null)
+                return false;
+
+            var product = await _context.Products.FirstOrDefaultAsync(p =>p.ProductId == productId &&p.SellerId == seller.SellerId);
 
             if (product == null)
                 return false;

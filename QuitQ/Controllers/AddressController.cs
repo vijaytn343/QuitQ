@@ -2,6 +2,7 @@
 using QuitQ.DTOs.AddressDTOs;
 using QuitQ.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace QuitQ.Controllers
 {
@@ -16,7 +17,7 @@ namespace QuitQ.Controllers
         {
             _addressService = addressService;
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -24,10 +25,14 @@ namespace QuitQ.Controllers
             return Ok(addresses);
         }
 
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var address = await _addressService.GetAddressByIdAsync(id);
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var address = await _addressService
+                .GetAddressByIdAsync(id, userId);
 
             if (address == null)
                 return NotFound();
@@ -35,11 +40,14 @@ namespace QuitQ.Controllers
             return Ok(address);
         }
 
-        [HttpPost("{userId}")]
-        public async Task<IActionResult> Create(
-            int userId,
-            AddressCreateDTO dto)
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> Create(AddressCreateDTO dto)
         {
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!
+                    .Value);
+
             var address = await _addressService
                 .CreateAddressAsync(userId, dto);
 
@@ -49,25 +57,26 @@ namespace QuitQ.Controllers
                 address);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(
-            int id,
-            AddressUpdateDTO dto)
+        public async Task<IActionResult> Update(int id,AddressUpdateDTO dto)
         {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var updated = await _addressService
-                .UpdateAddressAsync(id, dto);
+                .UpdateAddressAsync(userId,id, dto);
 
             if (!updated)
                 return NotFound();
 
             return NoContent();
         }
-
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var deleted = await _addressService
-                .DeleteAddressAsync(id);
+                .DeleteAddressAsync(userId,id);
 
             if (!deleted)
                 return NotFound();

@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using QuitQ.DTOs.OrderDTOs;
 using QuitQ.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace QuitQ.Controllers
 {
@@ -14,9 +16,13 @@ namespace QuitQ.Controllers
         {
             _orderService = orderService;
         }
-        [HttpPost("{userId}")]
-        public async Task<IActionResult> CreateOrder(int userId,CreateOrderDTO dto)
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> CreateOrder(CreateOrderDTO dto)
         {
+            var userId = int.Parse(
+       User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
             var order = await _orderService
                 .CreateOrderAsync(userId, dto);
 
@@ -25,25 +31,48 @@ namespace QuitQ.Controllers
                 new { orderId = order.OrderId },
                 order);
         }
+        [Authorize]
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetOrderById(int orderId)
         {
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!
+                    .Value);
+
             var order = await _orderService
-                .GetOrderByIdAsync(orderId);
+                .GetOrderByIdAsync(orderId, userId);
 
             if (order == null)
                 return NotFound();
 
             return Ok(order);
         }
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetOrdersByUser(int userId)
+        [Authorize]
+        [HttpGet("my-orders")]
+        public async Task<IActionResult> GetMyOrders()
         {
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
             var orders = await _orderService
                 .GetOrdersByUserIdAsync(userId);
 
             return Ok(orders);
         }
+        [Authorize(Roles = "Seller")]
+        [HttpGet("seller-orders")]
+        public async Task<IActionResult> GetSellerOrders()
+        {
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!
+                    .Value);
+
+            var orders = await _orderService
+                .GetSellerOrdersAsync(userId);
+
+            return Ok(orders);
+        }
+        [Authorize(Roles = "Seller,Admin")]
         [HttpPut("{orderId}/status")]
         public async Task<IActionResult> UpdateStatus(
     int orderId,

@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using QuitQ.DTOs.CartDTOs;
 using QuitQ.Services.Interfaces;
-
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 namespace QuitQ.Controllers
 {
     [Route("api/[controller]")]
@@ -15,9 +16,11 @@ namespace QuitQ.Controllers
             _cartService = cartService;
         }
 
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> GetCart(int userId)
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetCart()
         {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var cart = await _cartService.GetCartByUserIdAsync(userId);
 
             if (cart == null)
@@ -25,42 +28,57 @@ namespace QuitQ.Controllers
 
             return Ok(cart);
         }
-        [HttpPost("{userId}")]
-        public async Task<IActionResult> AddToCart(
-    int userId,
-    AddToCartDTO dto)
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> AddToCart(AddToCartDTO dto)
         {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var cart = await _cartService.AddToCartAsync(userId, dto);
 
             return Ok(cart);
         }
+        [Authorize]
         [HttpPut("{cartItemId}")]
-        public async Task<IActionResult> UpdateCartItem(
-    int cartItemId,
-    UpdateCartItemDTO dto)
+        public async Task<IActionResult> UpdateCartItem(int cartItemId,UpdateCartItemDTO dto)
         {
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!
+                    .Value);
+
             var updated = await _cartService
-                .UpdateCartItemAsync(cartItemId, dto);
+                .UpdateCartItemAsync(
+                    userId,
+                    cartItemId,
+                    dto);
 
             if (!updated)
                 return NotFound();
 
             return NoContent();
         }
+        [Authorize]
         [HttpDelete("item/{cartItemId}")]
         public async Task<IActionResult> RemoveCartItem(int cartItemId)
         {
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!
+                    .Value);
+
             var removed = await _cartService
-                .RemoveCartItemAsync(cartItemId);
+                .RemoveCartItemAsync(
+                    userId,
+                    cartItemId);
 
             if (!removed)
                 return NotFound();
 
             return NoContent();
         }
-        [HttpDelete("clear/{userId}")]
-        public async Task<IActionResult> ClearCart(int userId)
+        [Authorize]
+        [HttpDelete("clear")]
+        public async Task<IActionResult> ClearCart()
         {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var cleared = await _cartService
                 .ClearCartAsync(userId);
 

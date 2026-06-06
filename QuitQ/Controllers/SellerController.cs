@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using QuitQ.DTOs.SellerDTOs;
 using QuitQ.Services.Interfaces;
-
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 namespace QuitQ.Controllers
 {
     [Route("api/[controller]")]
@@ -33,28 +34,39 @@ namespace QuitQ.Controllers
             return Ok(seller);
         }
 
+        [Authorize(Roles = "Seller")]
         [HttpPost]
         public async Task<IActionResult> Create(SellerCreateDTO dto)
         {
-            var seller = await _sellerService.CreateSellerAsync(dto);
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var seller = await _sellerService.CreateSellerAsync(userId, dto);
 
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = seller.SellerId },
                 seller);
         }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, SellerUpdateDTO dto)
+        [Authorize(Roles = "Seller")]
+        [HttpPut("profile")]
+        public async Task<IActionResult> Update(SellerUpdateDTO dto)
         {
-            var updated = await _sellerService.UpdateSellerAsync(id, dto);
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!
+                    .Value);
+
+            var updated =
+                await _sellerService.UpdateSellerByUserIdAsync(
+                    userId,
+                    dto);
 
             if (!updated)
                 return NotFound();
 
             return NoContent();
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

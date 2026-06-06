@@ -4,8 +4,7 @@ namespace QuitQ.DTOs.SellerDTOs
 {
     public class SellerCreateDTO
     {
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a valid user")]
-        public int UserId { get; set; }
+        
 
         [Required(ErrorMessage = "Store name is required")]
         [StringLength(100, ErrorMessage = "Store name cannot exceed 100 characters")]

@@ -8,9 +8,9 @@ namespace QuitQ.Services.Interfaces
 
         Task<SellerResponseDTO?> GetSellerByIdAsync(int id);
 
-        Task<SellerResponseDTO> CreateSellerAsync(SellerCreateDTO dto);
+        Task<SellerResponseDTO> CreateSellerAsync(int userId,SellerCreateDTO dto);
 
-        Task<bool> UpdateSellerAsync(int id, SellerUpdateDTO dto);
+        Task<bool> UpdateSellerByUserIdAsync(int userId,SellerUpdateDTO dto);
 
         Task<bool> DeleteSellerAsync(int id);
     }

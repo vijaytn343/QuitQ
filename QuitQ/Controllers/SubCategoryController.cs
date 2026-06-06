@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using QuitQ.DTOs.SubCategoryDTO;
 using QuitQ.Services.Interfaces;
-
+using Microsoft.AspNetCore.Authorization;
 namespace QuitQ.Controllers
 {
     [Route("api/[controller]")]
@@ -32,7 +32,7 @@ namespace QuitQ.Controllers
 
             return Ok(subCategory);
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create(SubCategoryCreateDTO dto)
         {
@@ -44,6 +44,7 @@ namespace QuitQ.Controllers
                 subCategory);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, SubCategoryUpdateDTO dto)
         {
@@ -55,6 +56,7 @@ namespace QuitQ.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

@@ -125,14 +125,12 @@ namespace QuitQ.Services
 
             return response;
         }
-        public async Task<bool> UpdateCartItemAsync(
-    int cartItemId,
-    UpdateCartItemDTO dto)
+        public async Task<bool> UpdateCartItemAsync(int userId,int cartItemId,UpdateCartItemDTO dto)
         {
-            var cartItem = await _context.CartItems
-                .Include(ci => ci.Product)
-                .ThenInclude(p => p!.Inventory)
-                .FirstOrDefaultAsync(ci => ci.CartItemId == cartItemId);
+            var cartItem = await _context.CartItems.Include(ci => ci.Cart).Include(ci => ci.Product)
+        .ThenInclude(p => p!.Inventory).FirstOrDefaultAsync(ci =>
+        ci.CartItemId == cartItemId &&
+        ci.Cart!.UserId == userId);
 
             if (cartItem == null)
                 return false;
@@ -146,10 +144,11 @@ namespace QuitQ.Services
 
             return true;
         }
-        public async Task<bool> RemoveCartItemAsync(int cartItemId)
+        public async Task<bool> RemoveCartItemAsync(int userId,int cartItemId)
         {
-            var cartItem = await _context.CartItems
-                .FindAsync(cartItemId);
+            var cartItem = await _context.CartItems.Include(ci => ci.Cart).FirstOrDefaultAsync(ci =>
+         ci.CartItemId == cartItemId &&
+         ci.Cart!.UserId == userId);
 
             if (cartItem == null)
                 return false;

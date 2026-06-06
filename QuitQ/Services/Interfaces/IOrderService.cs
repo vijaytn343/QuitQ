@@ -8,7 +8,8 @@ namespace QuitQ.Services.Interfaces
 
         Task<IEnumerable<OrderResponseDTO>> GetOrdersByUserIdAsync(int userId);
 
-        Task<OrderResponseDTO?> GetOrderByIdAsync(int orderId);
+        Task<OrderResponseDTO?> GetOrderByIdAsync(int orderId,int userId);
+        Task<IEnumerable<SellerOrderResponseDTO>> GetSellerOrdersAsync(int userId);
 
         Task<bool> UpdateOrderStatusAsync(int orderId, string status);
     }

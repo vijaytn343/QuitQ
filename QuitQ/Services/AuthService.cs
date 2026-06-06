@@ -30,11 +30,11 @@ namespace QuitQ.Services
             if (existingUser != null)
                 throw new Exception("Email already exists.");
 
-            var customerRole = await _context.Roles
-                .FirstOrDefaultAsync(r => r.RoleName == "Customer");
+            var role = await _context.Roles
+                .FirstOrDefaultAsync(r => r.RoleName == dto.Role);
 
-            if (customerRole == null)
-                throw new Exception("Customer role not found.");
+            if (role == null)
+                throw new Exception(" role not found.");
 
             var user = new User
             {
@@ -42,7 +42,7 @@ namespace QuitQ.Services
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 Phone = dto.Phone,
-                RoleId = customerRole.RoleId,
+                RoleId = role.RoleId,
                 CreatedAt = DateTime.Now,
                 IsActive = true
             };
@@ -56,7 +56,7 @@ namespace QuitQ.Services
                 UserId = user.UserId,
                 Name = user.Name,
                 Email = user.Email,
-                Role = customerRole.RoleName,
+                Role = role.RoleName,
                 Message = "Registration successful"
             };
         }

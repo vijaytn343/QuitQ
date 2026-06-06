@@ -21,5 +21,10 @@ namespace QuitQ.DTOs.AuthDTOs
         [Required(ErrorMessage = "Phone number is required")]
         [Phone(ErrorMessage = "Please enter a valid phone number")]
         public string Phone { get; set; } = string.Empty;
+
+
+        [Required(ErrorMessage = "Role is required")]
+        [RegularExpression("^(Customer|Seller)$", ErrorMessage = "Role must be Customer or Seller")]
+        public string Role { get; set; } = "Customer";
     }
 }

@@ -14,10 +14,10 @@ namespace QuitQ.Services
         {
             _context = context;
         }
-        public async Task<PaymentResponseDTO?> GetPaymentByIdAsync(int paymentId)
+        public async Task<PaymentResponseDTO?> GetPaymentByIdAsync(int paymentId,int userId)
         {
-            var payment = await _context.Payments
-                .FirstOrDefaultAsync(p => p.PaymentId == paymentId);
+            var payment = await _context.Payments.Include(p=>p.Order)
+                .FirstOrDefaultAsync(p => p.PaymentId == paymentId && p.Order!.UserId==userId);
 
             if (payment == null)
                 return null;
@@ -33,11 +33,12 @@ namespace QuitQ.Services
                 TransactionId = payment.TransactionId
             };
         }
-        public async Task<IEnumerable<PaymentResponseDTO>> GetPaymentsByOrderIdAsync(int orderId)
+        public async Task<IEnumerable<PaymentResponseDTO>> GetPaymentsByOrderIdAsync(int orderId,int userId)
         {
-            var payments = await _context.Payments
-                .Where(p => p.OrderId == orderId)
-                .ToListAsync();
+            var payments = await _context.Payments.Include(p => p.Order).Where(p =>
+         p.OrderId == orderId &&
+         p.Order!.UserId == userId)
+     .ToListAsync();
 
             return payments.Select(payment => new PaymentResponseDTO
             {

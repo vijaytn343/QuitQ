@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using QuitQ.DTOs.ProductDTOs;
 using QuitQ.Services.Interfaces;
-
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 namespace QuitQ.Controllers
 {
     [Route("api/[controller]")]
@@ -32,33 +33,38 @@ namespace QuitQ.Controllers
 
             return Ok(product);
         }
-
+        [Authorize(Roles = "Seller")]
         [HttpPost]
         public async Task<IActionResult> Create(ProductCreateDTO dto)
         {
-            var product = await _productService.CreateProductAsync(dto);
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var product = await _productService.CreateProductAsync(userId,dto);
 
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = product.ProductId },
                 product);
         }
-
+        [Authorize(Roles = "Seller")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, ProductUpdateDTO dto)
         {
-            var updated = await _productService.UpdateProductAsync(id, dto);
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var updated =await _productService.UpdateProductAsync(userId,id,dto);
 
             if (!updated)
                 return NotFound();
 
             return NoContent();
         }
-
+        [Authorize(Roles = "Seller")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var deleted = await _productService.DeleteProductAsync(id);
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var deleted =await _productService.DeleteProductAsync(userId,id);
 
             if (!deleted)
                 return NotFound();

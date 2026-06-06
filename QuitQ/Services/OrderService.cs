@@ -107,7 +107,7 @@ namespace QuitQ.Services
 
                 await transaction.CommitAsync();
 
-                return await GetOrderByIdAsync(order.OrderId)
+                return await GetOrderByIdAsync(order.OrderId,userId)
                        ?? throw new Exception("Order creation failed.");
             }
             catch
@@ -116,14 +116,16 @@ namespace QuitQ.Services
                 throw;
             }
         }
-        public async Task<OrderResponseDTO?> GetOrderByIdAsync(int orderId)
+        public async Task<OrderResponseDTO?> GetOrderByIdAsync(int orderId,int userId)
         {
             var order = await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.Address)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
-                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+                .FirstOrDefaultAsync(o =>
+    o.OrderId == orderId &&
+    o.UserId == userId);
 
             if (order == null)
                 return null;
@@ -191,6 +193,27 @@ namespace QuitQ.Services
                     })
                     .ToList()
             });
+        }
+        public async Task<IEnumerable<SellerOrderResponseDTO>>GetSellerOrdersAsync(int userId)
+        {
+            return await _context.OrderItems
+                .Include(oi => oi.Order)
+                    .ThenInclude(o => o!.User)
+                .Include(oi => oi.Product)
+                    .ThenInclude(p => p!.Seller)
+                .Where(oi =>
+                    oi.Product!.Seller!.UserId == userId)
+                .Select(oi => new SellerOrderResponseDTO
+                {
+                    OrderId = oi.OrderId,
+                    CustomerName = oi.Order!.User!.Name,
+                    ProductName = oi.Product!.ProductName,
+                    Quantity = oi.Quantity,
+                    PriceAtPurchase = oi.PriceAtPurchase,
+                    OrderStatus = oi.Order.OrderStatus,
+                    OrderDate = oi.Order.OrderDate
+                })
+                .ToListAsync();
         }
         public async Task<bool> UpdateOrderStatusAsync(int orderId, string status)
         {

@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-//using Microsoft.OpenApi;
+using Microsoft.OpenApi;
+
+
 //using Microsoft.OpenApi.Models;
 
 using QuitQ.Data;
@@ -52,7 +54,7 @@ builder.Services.AddSwaggerGen();
 //        {
 //            Name = "Authorization",
 //            Type = SecuritySchemeType.Http,
-//            Scheme = "bearer",
+//            Scheme = "Bearer",
 //            BearerFormat = "JWT",
 //            In = ParameterLocation.Header,
 //            Description = "Enter JWT Token"
@@ -64,12 +66,11 @@ builder.Services.AddSwaggerGen();
 //            {
 //                new OpenApiSecurityScheme
 //                {
-//                    Reference =
-//                        new OpenApiReference
-//                        {
-//                            Type = ReferenceType.SecurityScheme,
-//                            Id = "Bearer"
-//                        }
+//                    Reference = new OpenApiReference
+//                    {
+//                        Type = ReferenceType.SecurityScheme,
+//                        Id = "Bearer"
+//                    }
 //                },
 //                Array.Empty<string>()
 //            }

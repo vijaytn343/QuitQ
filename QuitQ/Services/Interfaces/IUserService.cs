@@ -8,7 +8,7 @@ namespace QuitQ.Services.Interfaces
 
         Task<UserResponseDTO?> GetUserByIdAsync(int id);
 
-        Task<bool> UpdateUserAsync(int id, UserUpdateDTO dto);
+        Task<bool> UpdateUserAsync(int userId,int id, UserUpdateDTO dto);
 
         Task<bool> DeleteUserAsync(int id);
     }

@@ -6,12 +6,12 @@ namespace QuitQ.Services.Interfaces
     {
         Task<IEnumerable<AddressResponseDTO>> GetAllAddressesAsync();
 
-        Task<AddressResponseDTO?> GetAddressByIdAsync(int id);
+        Task<AddressResponseDTO?> GetAddressByIdAsync(int addressId,int userId);
 
         Task<AddressResponseDTO> CreateAddressAsync(int userId, AddressCreateDTO dto);
 
-        Task<bool> UpdateAddressAsync(int id, AddressUpdateDTO dto);
+        Task<bool> UpdateAddressAsync( int userId,int addressId,AddressUpdateDTO dto);
 
-        Task<bool> DeleteAddressAsync(int id);
+        Task<bool> DeleteAddressAsync(int userId, int addressId);
     }
 }

@@ -8,10 +8,10 @@ namespace QuitQ.Services.Interfaces
 
         Task<ProductResponseDTO?> GetProductByIdAsync(int id);
 
-        Task<ProductResponseDTO> CreateProductAsync(ProductCreateDTO dto);
+        Task<ProductResponseDTO> CreateProductAsync(int userId,ProductCreateDTO dto);
 
-        Task<bool> UpdateProductAsync(int id, ProductUpdateDTO dto);
+        Task<bool> UpdateProductAsync(int userId,int productId, ProductUpdateDTO dto);
 
-        Task<bool> DeleteProductAsync(int id);
+        Task<bool> DeleteProductAsync(int userId,int producId);
     }
 }

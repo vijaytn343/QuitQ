@@ -4,8 +4,7 @@ namespace QuitQ.DTOs.ProductDTOs
 {
     public class ProductCreateDTO
     {
-        [Range(1, int.MaxValue,ErrorMessage = "Please select a valid seller")]
-        public int SellerId { get; set; }
+        
 
         [Range(1, int.MaxValue,ErrorMessage = "Please select a valid subcategory")]
         public int SubCategoryId { get; set; }

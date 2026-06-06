@@ -31,11 +31,11 @@ namespace QuitQ.Services
                 })
                 .ToListAsync();
         }
-        public async Task<AddressResponseDTO?> GetAddressByIdAsync(int id)
+        public async Task<AddressResponseDTO?> GetAddressByIdAsync(int addressId,int userId)
         {
             return await _context.Addresses
                 .Include(a => a.User)
-                .Where(a => a.AddressId == id)
+               .Where(a =>a.AddressId == addressId && a.UserId == userId)
                 .Select(a => new AddressResponseDTO
                 {
                     AddressId = a.AddressId,
@@ -81,11 +81,10 @@ namespace QuitQ.Services
                 Country = address.Country
             };
         }
-        public async Task<bool> UpdateAddressAsync(
-    int id,
-    AddressUpdateDTO dto)
+        public async Task<bool> UpdateAddressAsync(int userId,int addressId,AddressUpdateDTO dto)
         {
-            var address = await _context.Addresses.FindAsync(id);
+            var address = await _context.Addresses.FirstOrDefaultAsync(a =>a.AddressId == addressId &&
+         a.UserId == userId);
 
             if (address == null)
                 return false;
@@ -100,9 +99,10 @@ namespace QuitQ.Services
 
             return true;
         }
-        public async Task<bool> DeleteAddressAsync(int id)
+        public async Task<bool> DeleteAddressAsync(int userId,int addressId)
         {
-            var address = await _context.Addresses.FindAsync(id);
+            var address = await _context.Addresses.FirstOrDefaultAsync(a =>a.AddressId == addressId &&
+        a.UserId == userId);
 
             if (address == null)
                 return false;

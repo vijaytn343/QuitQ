@@ -48,9 +48,12 @@ namespace QuitQ.Services
                 })
                 .FirstOrDefaultAsync();
         }
-        public async Task<bool> UpdateUserAsync(int id, UserUpdateDTO dto)
+        public async Task<bool> UpdateUserAsync(int userId,int id, UserUpdateDTO dto)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users
+     .FirstOrDefaultAsync(u =>
+         u.UserId == id &&
+         u.UserId == userId);
 
             if (user == null)
                 return false;

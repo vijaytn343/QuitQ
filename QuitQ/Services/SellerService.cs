@@ -53,11 +53,16 @@ namespace QuitQ.Services
                 })
                 .FirstOrDefaultAsync();
         }
-        public async Task<SellerResponseDTO> CreateSellerAsync(SellerCreateDTO dto)
+        public async Task<SellerResponseDTO> CreateSellerAsync(int userId,SellerCreateDTO dto)
         {
+            var existingSeller = await _context.Sellers
+       .FirstOrDefaultAsync(s => s.UserId == userId);
+
+            if (existingSeller != null)
+                throw new Exception("Seller profile already exists.");
             var seller = new Seller
             {
-                UserId = dto.UserId,
+                UserId = userId,
                 StoreName = dto.StoreName,
                 GSTNumber = dto.GSTNumber,
                 BusinessEmail = dto.BusinessEmail,
@@ -71,7 +76,7 @@ namespace QuitQ.Services
 
             await _context.SaveChangesAsync();
 
-            var user = await _context.Users.FindAsync(dto.UserId);
+            var user = await _context.Users.FindAsync(userId);
 
             return new SellerResponseDTO
             {
@@ -87,9 +92,10 @@ namespace QuitQ.Services
                 UserName = user?.Name
             };
         }
-        public async Task<bool> UpdateSellerAsync(int id, SellerUpdateDTO dto)
+        public async Task<bool> UpdateSellerByUserIdAsync(int userId,SellerUpdateDTO dto)
         {
-            var seller = await _context.Sellers.FindAsync(id);
+            var seller = await _context.Sellers
+                .FirstOrDefaultAsync(s => s.UserId == userId);
 
             if (seller == null)
                 return false;

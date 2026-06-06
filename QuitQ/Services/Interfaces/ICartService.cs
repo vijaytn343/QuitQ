@@ -8,9 +8,9 @@ namespace QuitQ.Services.Interfaces
 
         Task<CartResponseDTO> AddToCartAsync(int userId, AddToCartDTO dto);
 
-        Task<bool> UpdateCartItemAsync(int cartItemId, UpdateCartItemDTO dto);
+        Task<bool> UpdateCartItemAsync(int userId,int cartItemId, UpdateCartItemDTO dto);
 
-        Task<bool> RemoveCartItemAsync(int cartItemId);
+        Task<bool> RemoveCartItemAsync(int userId,int cartItemId);
 
         Task<bool> ClearCartAsync(int userId);
     }
