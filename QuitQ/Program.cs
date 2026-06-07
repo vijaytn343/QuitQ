@@ -5,8 +5,15 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using QuitQ.Data;
 using QuitQ.Middleware;
-using QuitQ.Services;
-using QuitQ.Services.Interfaces;
+using QuitQ.Services.AddressService;
+using QuitQ.Services.AuthFeature;
+using QuitQ.Services.CartFeature;
+using QuitQ.Services.CategoryFeature;
+using QuitQ.Services.OrderFeature;
+using QuitQ.Services.PaymentFeature;
+using QuitQ.Services.ProductFeature;
+using QuitQ.Services.SellerFeature;
+using QuitQ.Services.SubCategoryFeature;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);

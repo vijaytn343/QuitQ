@@ -2,9 +2,8 @@
 using QuitQ.DTOs.CartDTOs;
 using QuitQ.Models;
 using Microsoft.EntityFrameworkCore;
-using QuitQ.Services.Interfaces;
 
-namespace QuitQ.Services
+namespace QuitQ.Services.CartFeature
 {
     public class CartService:ICartService
     {

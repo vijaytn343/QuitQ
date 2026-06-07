@@ -1,14 +1,13 @@
 ﻿using QuitQ.Data;
 using QuitQ.DTOs.AuthDTOs;
 using QuitQ.Models;
-using QuitQ.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 
-namespace QuitQ.Services
+namespace QuitQ.Services.AuthFeature
 {
     public class AuthService:IAuthService
     {

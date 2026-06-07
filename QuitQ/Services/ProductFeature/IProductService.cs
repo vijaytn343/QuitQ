@@ -1,6 +1,6 @@
 ﻿using QuitQ.DTOs.ProductDTOs;
 
-namespace QuitQ.Services.Interfaces
+namespace QuitQ.Services.ProductFeature
 {
     public interface IProductService
     {

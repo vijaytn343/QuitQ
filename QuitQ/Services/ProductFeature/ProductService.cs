@@ -2,8 +2,7 @@
 using QuitQ.Data;
 using QuitQ.DTOs.ProductDTOs;
 using QuitQ.Models;
-using QuitQ.Services.Interfaces;
-namespace QuitQ.Services
+namespace QuitQ.Services.ProductFeature
 {
     public class ProductService:IProductService
     {

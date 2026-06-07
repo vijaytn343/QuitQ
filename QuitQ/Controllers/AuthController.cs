@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using QuitQ.DTOs.AuthDTOs;
-using QuitQ.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using QuitQ.Services.AuthFeature;
 
 namespace QuitQ.Controllers
 {

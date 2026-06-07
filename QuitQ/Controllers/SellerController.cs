@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using QuitQ.DTOs.SellerDTOs;
-using QuitQ.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using QuitQ.Services.SellerFeature;
 namespace QuitQ.Controllers
 {
     [Route("api/[controller]")]

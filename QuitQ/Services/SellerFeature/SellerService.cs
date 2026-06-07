@@ -2,9 +2,8 @@
 using QuitQ.Data;
 using QuitQ.DTOs.SellerDTOs;
 using QuitQ.Models;
-using QuitQ.Services.Interfaces;
 
-namespace QuitQ.Services
+namespace QuitQ.Services.SellerFeature
 {
     public class SellerService : ISellerService
     {

@@ -1,6 +1,6 @@
 ﻿using QuitQ.DTOs.AddressDTOs;
 
-namespace QuitQ.Services.Interfaces
+namespace QuitQ.Services.AddressService
 {
     public interface IAddressService
     {

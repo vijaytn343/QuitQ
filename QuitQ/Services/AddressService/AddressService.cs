@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using QuitQ.Data;
-using QuitQ.DTOs.AddressDTOs;
 using QuitQ.Models;
-using QuitQ.Services.Interfaces;
+using QuitQ.DTOs.AddressDTOs;
 
-namespace QuitQ.Services
+
+
+namespace QuitQ.Services.AddressService
 {
     public class AddressService:IAddressService
     {

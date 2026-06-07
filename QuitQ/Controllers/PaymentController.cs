@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QuitQ.Services.Interfaces;
+using QuitQ.Services.PaymentFeature;
 using System.Security.Claims;
 
 namespace QuitQ.Controllers

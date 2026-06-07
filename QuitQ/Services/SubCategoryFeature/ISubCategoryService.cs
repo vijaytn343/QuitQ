@@ -1,6 +1,6 @@
 ﻿using QuitQ.DTOs.SubCategoryDTO;
 
-namespace QuitQ.Services.Interfaces
+namespace QuitQ.Services.SubCategoryFeature
 {
     public interface ISubCategoryService
     {

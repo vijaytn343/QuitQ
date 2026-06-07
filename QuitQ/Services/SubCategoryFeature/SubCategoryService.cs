@@ -2,9 +2,8 @@
 using QuitQ.Data;
 using QuitQ.DTOs.SubCategoryDTO;
 using QuitQ.Models;
-using QuitQ.Services.Interfaces;
 
-namespace QuitQ.Services
+namespace QuitQ.Services.SubCategoryFeature
 {
     public class SubCategoryService : ISubCategoryService
     {

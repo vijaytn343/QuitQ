@@ -1,6 +1,6 @@
 ﻿using QuitQ.DTOs.OrderDTOs;
 
-namespace QuitQ.Services.Interfaces
+namespace QuitQ.Services.OrderFeature
 {
     public interface IOrderService
     {

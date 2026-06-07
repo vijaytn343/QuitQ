@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using QuitQ.DTOs.SubCategoryDTO;
-using QuitQ.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using QuitQ.Services.SubCategoryFeature;
 namespace QuitQ.Controllers
 {
     [Route("api/[controller]")]

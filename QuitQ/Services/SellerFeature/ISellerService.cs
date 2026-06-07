@@ -1,6 +1,6 @@
 ﻿using QuitQ.DTOs.SellerDTOs;
 
-namespace QuitQ.Services.Interfaces
+namespace QuitQ.Services.SellerFeature
 {
     public interface ISellerService
     {

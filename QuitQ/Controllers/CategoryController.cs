@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuitQ.DTOs.CategoryDTOs;
-using QuitQ.Services.Interfaces;
+using QuitQ.Services.CategoryFeature;
 
 namespace QuitQ.Controllers
 {

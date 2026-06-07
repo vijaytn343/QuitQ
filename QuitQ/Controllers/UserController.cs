@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuitQ.DTOs.UserDTOs;
-using QuitQ.Services.Interfaces;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using QuitQ.Services.UserFeature;
 
 namespace QuitQ.Controllers
 {

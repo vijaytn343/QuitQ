@@ -1,6 +1,6 @@
 ﻿using QuitQ.DTOs.PaymentDTOs;
 
-namespace QuitQ.Services.Interfaces
+namespace QuitQ.Services.PaymentFeature
 {
     public interface IPaymentService
     {

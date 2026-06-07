@@ -1,6 +1,6 @@
 ﻿using QuitQ.DTOs.UserDTOs;
 
-namespace QuitQ.Services.Interfaces
+namespace QuitQ.Services.UserFeature
 {
     public interface IUserService
     {

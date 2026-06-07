@@ -1,6 +1,6 @@
 ﻿using QuitQ.DTOs.CartDTOs;
 
-namespace QuitQ.Services.Interfaces
+namespace QuitQ.Services.CartFeature
 {
     public interface ICartService
     {

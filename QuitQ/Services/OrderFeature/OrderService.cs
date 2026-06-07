@@ -2,9 +2,8 @@
 using QuitQ.Data;
 using QuitQ.DTOs.OrderDTOs;
 using QuitQ.Models;
-using QuitQ.Services.Interfaces;
 
-namespace QuitQ.Services
+namespace QuitQ.Services.OrderFeature
 {
     public class OrderService:IOrderService
     {

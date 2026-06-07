@@ -1,6 +1,6 @@
 ﻿using QuitQ.DTOs.AuthDTOs;
 
-namespace QuitQ.Services.Interfaces
+namespace QuitQ.Services.AuthFeature
 {
     public interface IAuthService
     {

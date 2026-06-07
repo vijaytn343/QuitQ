@@ -2,9 +2,8 @@
 using QuitQ.Data;
 using QuitQ.DTOs.PaymentDTOs;
 using QuitQ.Models;
-using QuitQ.Services.Interfaces;
 
-namespace QuitQ.Services
+namespace QuitQ.Services.PaymentFeature
 {
     public class PaymentService: IPaymentService
     {

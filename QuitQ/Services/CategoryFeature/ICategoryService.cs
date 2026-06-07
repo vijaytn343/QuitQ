@@ -1,6 +1,6 @@
 ﻿using QuitQ.DTOs.CategoryDTOs;
 
-namespace QuitQ.Services.Interfaces
+namespace QuitQ.Services.CategoryFeature
 {
     public interface ICategoryService
     {

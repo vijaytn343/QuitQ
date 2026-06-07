@@ -1,9 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using QuitQ.Data;
 using QuitQ.DTOs.UserDTOs;
-using QuitQ.Services.Interfaces;
 
-namespace QuitQ.Services
+namespace QuitQ.Services.UserFeature
 {
     public class UserService:IUserService
     {

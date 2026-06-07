@@ -2,9 +2,8 @@
 using QuitQ.DTOs.CategoryDTOs;
 using QuitQ.Models;
 using Microsoft.EntityFrameworkCore;
-using QuitQ.Services.Interfaces;
 
-namespace QuitQ.Services
+namespace QuitQ.Services.CategoryFeature
 {
     public class CategoryService : ICategoryService
     {
