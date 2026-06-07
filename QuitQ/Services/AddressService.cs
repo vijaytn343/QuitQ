@@ -31,11 +31,11 @@ namespace QuitQ.Services
                 })
                 .ToListAsync();
         }
-        public async Task<AddressResponseDTO?> GetAddressByIdAsync(int addressId,int userId)
+        public async Task<AddressResponseDTO?> GetAddressByIdAsync(int userId)
         {
             return await _context.Addresses
                 .Include(a => a.User)
-               .Where(a =>a.AddressId == addressId && a.UserId == userId)
+               .Where(a => a.UserId == userId)
                 .Select(a => new AddressResponseDTO
                 {
                     AddressId = a.AddressId,

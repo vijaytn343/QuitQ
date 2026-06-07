@@ -26,13 +26,13 @@ namespace QuitQ.Controllers
         }
 
         [Authorize]
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpGet("my-addresses")]
+        public async Task<IActionResult> GetById()
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             var address = await _addressService
-                .GetAddressByIdAsync(id, userId);
+                .GetAddressByIdAsync( userId);
 
             if (address == null)
                 return NotFound();
