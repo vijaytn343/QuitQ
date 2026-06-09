@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using QuitQ.DTOs.OrderDTOs;
+﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using QuitQ.DTOs.OrderDTOs;
 using QuitQ.Services.OrderFeature;
+using System.Security.Claims;
 
 namespace QuitQ.Controllers
 {
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     public class OrderController:ControllerBase
     {

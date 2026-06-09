@@ -1,9 +1,10 @@
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-
 using Microsoft.OpenApi.Models;
 using QuitQ.Data;
+using QuitQ.Mappings;
 using QuitQ.Middleware;
 using QuitQ.Services.AddressService;
 using QuitQ.Services.AuthFeature;
@@ -14,7 +15,9 @@ using QuitQ.Services.PaymentFeature;
 using QuitQ.Services.ProductFeature;
 using QuitQ.Services.SellerFeature;
 using QuitQ.Services.SubCategoryFeature;
+using QuitQ.Services.UserFeature;
 using System.Text;
+using Asp.Versioning;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +52,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Services (DI)
 // =====================
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ISubCategoryService, SubCategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
@@ -57,12 +61,21 @@ builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // =====================
 // Exception Handler
 // =====================
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+
+    options.AssumeDefaultVersionWhenUnspecified = true;
+
+    options.ReportApiVersions = true;
+});
 
 // =====================
 // Controllers

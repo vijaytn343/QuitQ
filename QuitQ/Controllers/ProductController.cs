@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using QuitQ.DTOs.ProductDTOs;
+﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using QuitQ.DTOs.ProductDTOs;
 using QuitQ.Services.ProductFeature;
+using System.Security.Claims;
 namespace QuitQ.Controllers
 {
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     public class ProductController : ControllerBase
     {
@@ -17,9 +19,11 @@ namespace QuitQ.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] ProductFilterDTO filter)
         {
-            var products = await _productService.GetAllProductsAsync();
+            var products =
+         await _productService.GetProductsAsync(filter);
+
             return Ok(products);
         }
 

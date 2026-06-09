@@ -2,60 +2,44 @@
 using QuitQ.DTOs.CategoryDTOs;
 using QuitQ.Models;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace QuitQ.Services.CategoryFeature
 {
     public class CategoryService : ICategoryService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public CategoryService(AppDbContext context)
+        public CategoryService( AppDbContext context,IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<IEnumerable<CategoryResponseDTO>> GetAllCategoriesAsync()
         {
-            return await _context.Categories
-                .Select(c => new CategoryResponseDTO
-                {
-                    CategoryId = c.CategoryId,
-                    CategoryName = c.CategoryName,
-                    Description = c.Description
-                })
-                .ToListAsync();
+            var categories = await _context.Categories.ToListAsync();
+
+            return _mapper.Map<List<CategoryResponseDTO>>(categories);
         }
 
         public async Task<CategoryResponseDTO?> GetCategoryByIdAsync(int id)
         {
-            return await _context.Categories
-                .Where(c => c.CategoryId == id)
-                .Select(c => new CategoryResponseDTO
-                {
-                    CategoryId = c.CategoryId,
-                    CategoryName = c.CategoryName,
-                    Description = c.Description
-                })
-                .FirstOrDefaultAsync();
+            var category = await _context.Categories
+      .FirstOrDefaultAsync(c => c.CategoryId == id);
+
+            return category == null? null: _mapper.Map<CategoryResponseDTO>(category);
         }
 
         public async Task<CategoryResponseDTO> CreateCategoryAsync(CategoryCreateDTO dto)
         {
-            var category = new Category
-            {
-                CategoryName = dto.CategoryName,
-                Description = dto.Description
-            };
+            var category = _mapper.Map<Category>(dto);
 
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
 
-            return new CategoryResponseDTO
-            {
-                CategoryId = category.CategoryId,
-                CategoryName = category.CategoryName,
-                Description = category.Description
-            };
+            return _mapper.Map<CategoryResponseDTO>(category);
         }
 
         public async Task<bool> UpdateCategoryAsync(int id, CategoryUpdateDTO dto)
@@ -65,8 +49,7 @@ namespace QuitQ.Services.CategoryFeature
             if (category == null)
                 return false;
 
-            category.CategoryName = dto.CategoryName;
-            category.Description = dto.Description;
+            _mapper.Map(dto, category);
 
             await _context.SaveChangesAsync();
 

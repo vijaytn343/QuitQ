@@ -2,85 +2,62 @@
 using QuitQ.Data;
 using QuitQ.Models;
 using QuitQ.DTOs.AddressDTOs;
+using AutoMapper;
 
-
-
+using Microsoft.Extensions.Logging;
 namespace QuitQ.Services.AddressService
 {
     public class AddressService:IAddressService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
+        private readonly ILogger<AddressService> _logger;
 
-        public AddressService(AppDbContext context)
+        public AddressService( AppDbContext context, IMapper mapper, ILogger<AddressService> logger)
         {
             _context = context;
+            _mapper = mapper;
+            _logger = logger;
         }
         public async Task<IEnumerable<AddressResponseDTO>> GetAllAddressesAsync()
         {
-            return await _context.Addresses
-                .Include(a => a.User)
-                .Select(a => new AddressResponseDTO
-                {
-                    AddressId = a.AddressId,
-                    UserId = a.UserId,
-                    UserName = a.User!.Name,
-                    FullAddress = a.FullAddress,
-                    City = a.City,
-                    State = a.State,
-                    Pincode = a.Pincode,
-                    Country = a.Country
-                })
-                .ToListAsync();
+            var addresses = await _context.Addresses
+    .Include(a => a.User)
+    .ToListAsync();
+
+            return _mapper.Map<List<AddressResponseDTO>>(addresses);
         }
         public async Task<AddressResponseDTO?> GetAddressByIdAsync(int userId)
         {
-            return await _context.Addresses
-                .Include(a => a.User)
-               .Where(a => a.UserId == userId)
-                .Select(a => new AddressResponseDTO
-                {
-                    AddressId = a.AddressId,
-                    UserId = a.UserId,
-                    UserName = a.User!.Name,
-                    FullAddress = a.FullAddress,
-                    City = a.City,
-                    State = a.State,
-                    Pincode = a.Pincode,
-                    Country = a.Country
-                })
-                .FirstOrDefaultAsync();
+            var address = await _context.Addresses
+    .Include(a => a.User)
+    .FirstOrDefaultAsync(a => a.UserId == userId);
+
+            return address == null? null : _mapper.Map<AddressResponseDTO>(address);
         }
         public async Task<AddressResponseDTO> CreateAddressAsync(
     int userId,
     AddressCreateDTO dto)
         {
-            var address = new Address
-            {
-                UserId = userId,
-                FullAddress = dto.FullAddress,
-                City = dto.City,
-                State = dto.State,
-                Pincode = dto.Pincode,
-                Country = dto.Country
-            };
+            var address = _mapper.Map<Address>(dto);
+
+            address.UserId = userId;
 
             _context.Addresses.Add(address);
 
             await _context.SaveChangesAsync();
+            _logger.LogInformation(
+    "Address created by User {UserId}",
+    userId);
 
-            var user = await _context.Users.FindAsync(userId);
+            var savedAddress = await _context.Addresses
+     .Include(a => a.User)
+     .FirstOrDefaultAsync(a => a.AddressId == address.AddressId);
 
-            return new AddressResponseDTO
-            {
-                AddressId = address.AddressId,
-                UserId = address.UserId,
-                UserName = user?.Name,
-                FullAddress = address.FullAddress,
-                City = address.City,
-                State = address.State,
-                Pincode = address.Pincode,
-                Country = address.Country
-            };
+            if (savedAddress == null)
+                throw new Exception("Address not found after creation.");
+
+            return _mapper.Map<AddressResponseDTO>(savedAddress);
         }
         public async Task<bool> UpdateAddressAsync(int userId,int addressId,AddressUpdateDTO dto)
         {
@@ -89,14 +66,12 @@ namespace QuitQ.Services.AddressService
 
             if (address == null)
                 return false;
-
-            address.FullAddress = dto.FullAddress;
-            address.City = dto.City;
-            address.State = dto.State;
-            address.Pincode = dto.Pincode;
-            address.Country = dto.Country;
-
+            _mapper.Map(dto, address);
             await _context.SaveChangesAsync();
+            _logger.LogInformation(
+    "Address {AddressId} updated by User {UserId}",
+    addressId,
+    userId);
 
             return true;
         }
@@ -111,6 +86,10 @@ namespace QuitQ.Services.AddressService
             _context.Addresses.Remove(address);
 
             await _context.SaveChangesAsync();
+            _logger.LogInformation(
+    "Address {AddressId} deleted by User {UserId}",
+    addressId,
+    userId);
 
             return true;
         }

@@ -1,13 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuitQ.DTOs.UserDTOs;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using QuitQ.Services.UserFeature;
+using System.Security.Claims;
 
 namespace QuitQ.Controllers
 {
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {

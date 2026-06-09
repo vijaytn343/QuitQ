@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using QuitQ.DTOs.AuthDTOs;
+﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using QuitQ.DTOs.AuthDTOs;
 using QuitQ.Services.AuthFeature;
+using System.Text;
 
 namespace QuitQ.Controllers
 {
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {

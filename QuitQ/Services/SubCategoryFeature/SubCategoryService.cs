@@ -2,71 +2,51 @@
 using QuitQ.Data;
 using QuitQ.DTOs.SubCategoryDTO;
 using QuitQ.Models;
-
+using AutoMapper;
 namespace QuitQ.Services.SubCategoryFeature
 {
     public class SubCategoryService : ISubCategoryService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public SubCategoryService(AppDbContext context)
+        public SubCategoryService(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
         public async Task<IEnumerable<SubCategoryResponseDTO>> GetAllSubCategoriesAsync()
         {
-            return await _context.SubCategories
-                .Include(sc => sc.Category)
-                .Select(sc => new SubCategoryResponseDTO
-                {
-                    SubCategoryId = sc.SubCategoryId,
-                    CategoryId = sc.CategoryId,
-                    CategoryName = sc.Category!.CategoryName,
-                    SubCategoryName = sc.SubCategoryName,
-                    Description = sc.Description
-                })
-                .ToListAsync();
+            var subCategories = await _context.SubCategories.Include(sc => sc.Category)
+    .ToListAsync();
+
+            return _mapper.Map<List<SubCategoryResponseDTO>>(subCategories);
         }
 
         public async Task<SubCategoryResponseDTO?> GetSubCategoryByIdAsync(int id)
         {
-            return await _context.SubCategories
-                .Include(sc => sc.Category)
-                .Where(sc => sc.SubCategoryId == id)
-                .Select(sc => new SubCategoryResponseDTO
-                {
-                    SubCategoryId = sc.SubCategoryId,
-                    CategoryId = sc.CategoryId,
-                    CategoryName = sc.Category!.CategoryName,
-                    SubCategoryName = sc.SubCategoryName,
-                    Description = sc.Description
-                })
-                .FirstOrDefaultAsync();
+            var subCategory = await _context.SubCategories.Include(sc => sc.Category)
+     .FirstOrDefaultAsync(sc => sc.SubCategoryId == id);
+
+            return subCategory == null? null: _mapper.Map<SubCategoryResponseDTO>(subCategory);
         }
 
         public async Task<SubCategoryResponseDTO> CreateSubCategoryAsync(SubCategoryCreateDTO dto)
         {
-            var subCategory = new SubCategory
-            {
-                CategoryId = dto.CategoryId,
-                SubCategoryName = dto.SubCategoryName,
-                Description = dto.Description
-            };
+            var subCategory = _mapper.Map<SubCategory>(dto);
 
             _context.SubCategories.Add(subCategory);
             await _context.SaveChangesAsync();
 
-            var category = await _context.Categories
-                .FindAsync(dto.CategoryId);
+            var savedSubCategory = await _context.SubCategories
+    .Include(sc => sc.Category)
+    .FirstOrDefaultAsync(sc =>
+        sc.SubCategoryId == subCategory.SubCategoryId);
 
-            return new SubCategoryResponseDTO
-            {
-                SubCategoryId = subCategory.SubCategoryId,
-                CategoryId = subCategory.CategoryId,
-                CategoryName = category?.CategoryName ?? "",
-                SubCategoryName = subCategory.SubCategoryName,
-                Description = subCategory.Description
-            };
+            if (savedSubCategory == null)
+                throw new Exception("SubCategory not found after creation.");
+
+            return _mapper.Map<SubCategoryResponseDTO>(savedSubCategory);
         }
 
         public async Task<bool> UpdateSubCategoryAsync(int id, SubCategoryUpdateDTO dto)
@@ -77,10 +57,7 @@ namespace QuitQ.Services.SubCategoryFeature
             if (subCategory == null)
                 return false;
 
-            subCategory.CategoryId = dto.CategoryId;
-            subCategory.SubCategoryName = dto.SubCategoryName;
-            subCategory.Description = dto.Description;
-
+            _mapper.Map(dto, subCategory);
             await _context.SaveChangesAsync();
 
             return true;

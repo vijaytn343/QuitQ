@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using QuitQ.DTOs.AddressDTOs;
+﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using QuitQ.DTOs.AddressDTOs;
 using QuitQ.Services.AddressService;
+using System.Security.Claims;
 
 namespace QuitQ.Controllers
 {
-   // [Authorize]
-    [Route("api/[controller]")]
+    // [Authorize]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     public class AddressController : ControllerBase
     {

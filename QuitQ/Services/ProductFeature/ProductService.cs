@@ -2,66 +2,123 @@
 using QuitQ.Data;
 using QuitQ.DTOs.ProductDTOs;
 using QuitQ.Models;
+using AutoMapper;
+using Microsoft.Extensions.Logging;
 namespace QuitQ.Services.ProductFeature
 {
     public class ProductService:IProductService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
+        private readonly ILogger<ProductService> _logger;
 
-        public ProductService(AppDbContext context)
+        public ProductService(
+      AppDbContext context,
+      IMapper mapper,
+      ILogger<ProductService> logger)
         {
             _context = context;
+            _mapper = mapper;
+            _logger = logger;
         }
         public async Task<IEnumerable<ProductResponseDTO>> GetAllProductsAsync()
         {
-            return await _context.Products
+
+            var products = await _context.Products
+                .Include(p => p.Seller)
+                .Include(p => p.SubCategory)
+                    .ThenInclude(sc => sc.Category)
+                .Include(p => p.Inventory).Where(p => p.IsActive)
+                .ToListAsync();
+
+            return _mapper.Map<List<ProductResponseDTO>>(products);
+        }
+        public async Task<IEnumerable<ProductResponseDTO>> GetProductsAsync(
+    ProductFilterDTO filter)
+        {
+            var query = _context.Products
                 .Include(p => p.Seller)
                 .Include(p => p.SubCategory)
                     .ThenInclude(sc => sc.Category)
                 .Include(p => p.Inventory)
-                .Select(p => new ProductResponseDTO
-                {
-                    ProductId = p.ProductId,
-                    ProductName = p.ProductName,
-                    Description = p.Description,
-                    Price = p.Price,
-                    Brand = p.Brand,
-                    ImageUrl = p.ImageUrl,
-                    IsActive = p.IsActive,
-                    CreatedAt = p.CreatedAt,
-                    UpdatedAt = p.UpdatedAt,
-                    QuantityAvailable = p.Inventory != null ? p.Inventory.QuantityAvailable : 0,
-                    CategoryName = p.SubCategory!.Category!.CategoryName,
-                    SubCategoryName = p.SubCategory.SubCategoryName,
-                    SellerName = p.Seller!.StoreName
-                })
-                .ToListAsync();
+                .AsQueryable();
+            query = query.Where(p => p.IsActive);
+
+            if (filter.MinPrice > filter.MaxPrice)
+            {
+                throw new BadHttpRequestException(
+     "MinPrice cannot be greater than MaxPrice");
+            }
+
+            // Search
+            if (!string.IsNullOrWhiteSpace(filter.Keyword))
+            {
+                query = query.Where(p =>
+                    p.ProductName.ToLower().Contains(filter.Keyword.ToLower()) ||
+                    (p.Description != null &&
+                     p.Description.ToLower().Contains(filter.Keyword.ToLower()))||
+                    (p.Brand != null &&
+                     p.Brand.ToLower().Contains(filter.Keyword.ToLower())));
+            }
+
+            // Category Filter
+            if (filter.CategoryId.HasValue)
+            {
+                query = query.Where(p =>
+                    p.SubCategory!.CategoryId ==
+                    filter.CategoryId.Value);
+            }
+
+            // SubCategory Filter
+            if (filter.SubCategoryId.HasValue)
+            {
+                query = query.Where(p =>
+                    p.SubCategoryId ==
+                    filter.SubCategoryId.Value);
+            }
+
+            // Brand Filter
+            if (!string.IsNullOrWhiteSpace(filter.Brand))
+            {
+                query = query.Where(p =>
+                    p.Brand == filter.Brand);
+            }
+
+            // Min Price
+            if (filter.MinPrice.HasValue)
+            {
+                query = query.Where(p =>
+                    p.Price >= filter.MinPrice.Value);
+            }
+
+            // Max Price
+            if (filter.MaxPrice.HasValue)
+            {
+                query = query.Where(p =>
+                    p.Price <= filter.MaxPrice.Value);
+            }
+
+            // Pagination
+            query = query
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize);
+
+            var products = await query.ToListAsync();
+
+            return _mapper.Map<List<ProductResponseDTO>>(products);
         }
         public async Task<ProductResponseDTO?> GetProductByIdAsync(int id)
         {
-            return await _context.Products
-                .Include(p => p.Seller)
-                .Include(p => p.SubCategory)
-                    .ThenInclude(sc => sc.Category)
-                .Include(p => p.Inventory)
-                .Where(p => p.ProductId == id)
-                .Select(p => new ProductResponseDTO
-                {
-                    ProductId = p.ProductId,
-                    ProductName = p.ProductName,
-                    Description = p.Description,
-                    Price = p.Price,
-                    Brand = p.Brand,
-                    ImageUrl = p.ImageUrl,
-                    IsActive = p.IsActive,
-                    CreatedAt = p.CreatedAt,
-                    UpdatedAt = p.UpdatedAt,
-                    QuantityAvailable = p.Inventory != null ? p.Inventory.QuantityAvailable : 0,
-                    CategoryName = p.SubCategory!.Category!.CategoryName,
-                    SubCategoryName = p.SubCategory.SubCategoryName,
-                    SellerName = p.Seller!.StoreName
-                })
-                .FirstOrDefaultAsync();
+            var product = await _context.Products
+    .Include(p => p.Seller)
+    .Include(p => p.SubCategory)
+        .ThenInclude(sc => sc.Category)
+    .Include(p => p.Inventory)
+   .FirstOrDefaultAsync(
+    p => p.ProductId == id &&
+         p.IsActive);
+
+            return product == null? null: _mapper.Map<ProductResponseDTO>(product);
         }
         public async Task<ProductResponseDTO> CreateProductAsync(int userId,ProductCreateDTO dto)
         {
@@ -70,23 +127,20 @@ namespace QuitQ.Services.ProductFeature
             if (seller == null)
                 throw new Exception("Seller profile not found.");
 
-            var product = new Product
-            {
-                SellerId = seller.SellerId,
-                SubCategoryId = dto.SubCategoryId,
-                ProductName = dto.ProductName,
-                Description = dto.Description,
-                Price = dto.Price,
-                Brand = dto.Brand,
-                ImageUrl = dto.ImageUrl,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
-                IsActive = true
-            };
+            var product = _mapper.Map<Product>(dto);
+
+            product.SellerId = seller.SellerId;
+            product.CreatedAt = DateTime.Now;
+            product.UpdatedAt = DateTime.Now;
+            product.IsActive = true;
 
             _context.Products.Add(product);
 
             await _context.SaveChangesAsync();
+            _logger.LogInformation(
+    "Product {ProductName} created by User {UserId}",
+    product.ProductName,
+    userId);
 
             var inventory = new Inventory
             {
@@ -107,24 +161,10 @@ namespace QuitQ.Services.ProductFeature
     .Include(p => p.Inventory)
     .FirstOrDefaultAsync(p => p.ProductId == product.ProductId);
 
-            return new ProductResponseDTO
-            {
-                ProductId = savedProduct!.ProductId,
-                ProductName = savedProduct.ProductName,
-                Description = savedProduct.Description,
-                Price = savedProduct.Price,
-                Brand = savedProduct.Brand,
-                ImageUrl = savedProduct.ImageUrl,
-                IsActive = savedProduct.IsActive,
-                CreatedAt = savedProduct.CreatedAt,
-                UpdatedAt = savedProduct.UpdatedAt,
+            if (savedProduct == null)
+                throw new Exception("Product not found after creation.");
 
-                QuantityAvailable = savedProduct.Inventory!.QuantityAvailable,
-
-                CategoryName = savedProduct.SubCategory!.Category!.CategoryName,
-                SubCategoryName = savedProduct.SubCategory.SubCategoryName,
-                SellerName = savedProduct.Seller!.StoreName
-            };
+            return _mapper.Map<ProductResponseDTO>(savedProduct);
         }
         public async Task<bool> UpdateProductAsync(int userId,int productId, ProductUpdateDTO dto)
         {
@@ -136,21 +176,15 @@ namespace QuitQ.Services.ProductFeature
             var product = await _context.Products
                 .FirstOrDefaultAsync(p =>
                     p.ProductId == productId &&
-                    p.SellerId == seller.SellerId);
+                    p.SellerId == seller.SellerId && p.IsActive);
 
             if (product == null)
                 return false;
 
-            if (product == null)
-                return false;
+      
 
-            product.SubCategoryId = dto.SubCategoryId;
-            product.ProductName = dto.ProductName;
-            product.Description = dto.Description;
-            product.Price = dto.Price;
-            product.Brand = dto.Brand;
-            product.ImageUrl = dto.ImageUrl;
-            product.IsActive = dto.IsActive;
+            _mapper.Map(dto, product);
+
             product.UpdatedAt = DateTime.Now;
 
             var inventory = await _context.Inventories
@@ -163,6 +197,10 @@ namespace QuitQ.Services.ProductFeature
             }
 
             await _context.SaveChangesAsync();
+            _logger.LogInformation(
+    "Product {ProductId} updated by User {UserId}",
+    productId,
+    userId);
 
             return true;
         }
@@ -174,14 +212,19 @@ namespace QuitQ.Services.ProductFeature
             if (seller == null)
                 return false;
 
-            var product = await _context.Products.FirstOrDefaultAsync(p =>p.ProductId == productId &&p.SellerId == seller.SellerId);
+            var product = await _context.Products.FirstOrDefaultAsync(p =>p.ProductId == productId &&p.SellerId == seller.SellerId && p.IsActive);
 
             if (product == null)
                 return false;
 
-            _context.Products.Remove(product);
+            product.IsActive = false;
+            product.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
+            _logger.LogInformation(
+    "Product {ProductId} deleted by User {UserId}",
+    productId,
+    userId);
 
             return true;
         }

@@ -1,17 +1,25 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using QuitQ.Data;
 using QuitQ.DTOs.OrderDTOs;
 using QuitQ.Models;
+using QuitQ.Services.OrderFeature;
+using Microsoft.Extensions.Logging;
+
 
 namespace QuitQ.Services.OrderFeature
 {
     public class OrderService:IOrderService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
+        private readonly ILogger<OrderService> _logger;
 
-        public OrderService(AppDbContext context)
+        public OrderService( AppDbContext context,IMapper mapper, ILogger<OrderService> logger)
         {
             _context = context;
+            _mapper = mapper;
+            _logger = logger;
         }
         public async Task<OrderResponseDTO> CreateOrderAsync(int userId, CreateOrderDTO dto)
         {
@@ -105,6 +113,10 @@ namespace QuitQ.Services.OrderFeature
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
+                _logger.LogInformation(
+    "Order {OrderId} created by User {UserId}",
+    order.OrderId,
+    userId);
 
                 return await GetOrderByIdAsync(order.OrderId,userId)
                        ?? throw new Exception("Order creation failed.");
@@ -129,32 +141,7 @@ namespace QuitQ.Services.OrderFeature
             if (order == null)
                 return null;
 
-            return new OrderResponseDTO
-            {
-                OrderId = order.OrderId,
-                UserId = order.UserId,
-                CustomerName = order.User!.Name,
-                OrderStatus = order.OrderStatus,
-                OrderDate = order.OrderDate,
-                TotalAmount = order.TotalAmount,
-
-                FullAddress = order.Address!.FullAddress,
-                City = order.Address.City,
-                State = order.Address.State,
-                Pincode = order.Address.Pincode,
-                Country = order.Address.Country,
-
-                OrderItems = order.OrderItems!
-                    .Select(oi => new OrderItemResponseDTO
-                    {
-                        ProductId = oi.ProductId,
-                        ProductName = oi.Product!.ProductName,
-                        Quantity = oi.Quantity,
-                        PriceAtPurchase = oi.PriceAtPurchase,
-                        SubTotal = oi.Quantity * oi.PriceAtPurchase
-                    })
-                    .ToList()
-            };
+            return _mapper.Map<OrderResponseDTO>(order);
         }
         public async Task<IEnumerable<OrderResponseDTO>> GetOrdersByUserIdAsync(int userId)
         {
@@ -166,53 +153,20 @@ namespace QuitQ.Services.OrderFeature
                 .Where(o => o.UserId == userId)
                 .ToListAsync();
 
-            return orders.Select(order => new OrderResponseDTO
-            {
-                OrderId = order.OrderId,
-                UserId = order.UserId,
-                CustomerName = order.User!.Name,
-                OrderStatus = order.OrderStatus,
-                OrderDate = order.OrderDate,
-                TotalAmount = order.TotalAmount,
-
-                FullAddress = order.Address!.FullAddress,
-                City = order.Address.City,
-                State = order.Address.State,
-                Pincode = order.Address.Pincode,
-                Country = order.Address.Country,
-
-                OrderItems = order.OrderItems!
-                    .Select(oi => new OrderItemResponseDTO
-                    {
-                        ProductId = oi.ProductId,
-                        ProductName = oi.Product!.ProductName,
-                        Quantity = oi.Quantity,
-                        PriceAtPurchase = oi.PriceAtPurchase,
-                        SubTotal = oi.Quantity * oi.PriceAtPurchase
-                    })
-                    .ToList()
-            });
+            return _mapper.Map<List<OrderResponseDTO>>(orders);
         }
         public async Task<IEnumerable<SellerOrderResponseDTO>>GetSellerOrdersAsync(int userId)
         {
-            return await _context.OrderItems
-                .Include(oi => oi.Order)
-                    .ThenInclude(o => o!.User)
-                .Include(oi => oi.Product)
-                    .ThenInclude(p => p!.Seller)
-                .Where(oi =>
-                    oi.Product!.Seller!.UserId == userId)
-                .Select(oi => new SellerOrderResponseDTO
-                {
-                    OrderId = oi.OrderId,
-                    CustomerName = oi.Order!.User!.Name,
-                    ProductName = oi.Product!.ProductName,
-                    Quantity = oi.Quantity,
-                    PriceAtPurchase = oi.PriceAtPurchase,
-                    OrderStatus = oi.Order.OrderStatus,
-                    OrderDate = oi.Order.OrderDate
-                })
-                .ToListAsync();
+            var orderItems = await _context.OrderItems
+        .Include(oi => oi.Order)
+            .ThenInclude(o => o!.User)
+        .Include(oi => oi.Product)
+            .ThenInclude(p => p!.Seller)
+        .Where(oi =>
+            oi.Product!.Seller!.UserId == userId)
+        .ToListAsync();
+
+            return _mapper.Map<List<SellerOrderResponseDTO>>(orderItems);
         }
         public async Task<bool> UpdateOrderStatusAsync(int orderId, string status)
         {
@@ -225,8 +179,12 @@ namespace QuitQ.Services.OrderFeature
             order.OrderStatus = status;
             order.UpdatedAt = DateTime.Now;
 
-            await _context.SaveChangesAsync();
 
+            await _context.SaveChangesAsync();
+            _logger.LogInformation(
+    "Order {OrderId} status updated to {Status}",
+    orderId,
+    status);
             return true;
         }
     }

@@ -5,7 +5,8 @@ namespace QuitQ.Services.ProductFeature
     public interface IProductService
     {
         Task<IEnumerable<ProductResponseDTO>> GetAllProductsAsync();
-
+        Task<IEnumerable<ProductResponseDTO>> GetProductsAsync(
+  ProductFilterDTO filter);
         Task<ProductResponseDTO?> GetProductByIdAsync(int id);
 
         Task<ProductResponseDTO> CreateProductAsync(int userId,ProductCreateDTO dto);
@@ -13,5 +14,6 @@ namespace QuitQ.Services.ProductFeature
         Task<bool> UpdateProductAsync(int userId,int productId, ProductUpdateDTO dto);
 
         Task<bool> DeleteProductAsync(int userId,int producId);
+      
     }
 }

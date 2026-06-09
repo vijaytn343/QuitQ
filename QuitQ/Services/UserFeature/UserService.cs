@@ -1,51 +1,36 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using QuitQ.Data;
 using QuitQ.DTOs.UserDTOs;
-
+using AutoMapper;
 namespace QuitQ.Services.UserFeature
 {
     public class UserService:IUserService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public UserService(AppDbContext context)
+        public UserService(AppDbContext context,IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
         public async Task<IEnumerable<UserResponseDTO>> GetAllUsersAsync()
         {
-            return await _context.Users
-                .Include(u => u.Role)
-                .Select(u => new UserResponseDTO
-                {
-                    UserId = u.UserId,
-                    Name = u.Name,
-                    Email = u.Email,
-                    Phone = u.Phone,
-                    Gender = u.Gender,
-                    RoleName = u.Role!.RoleName,
-                    IsActive = u.IsActive,
-                    CreatedAt = u.CreatedAt
-                })
-                .ToListAsync();
+            var users = await _context.Users
+         .Include(u => u.Role)
+         .ToListAsync();
+
+            return _mapper.Map<List<UserResponseDTO>>(users);
         }
         public async Task<UserResponseDTO?> GetUserByIdAsync(int id)
         {
-            return await _context.Users
-                .Include(u => u.Role)
-                .Where(u => u.UserId == id)
-                .Select(u => new UserResponseDTO
-                {
-                    UserId = u.UserId,
-                    Name = u.Name,
-                    Email = u.Email,
-                    Phone = u.Phone,
-                    Gender = u.Gender,
-                    RoleName = u.Role!.RoleName,
-                    IsActive = u.IsActive,
-                    CreatedAt = u.CreatedAt
-                })
-                .FirstOrDefaultAsync();
+            var user = await _context.Users
+        .Include(u => u.Role)
+        .FirstOrDefaultAsync(u => u.UserId == id);
+
+            return user == null
+                ? null
+                : _mapper.Map<UserResponseDTO>(user);
         }
         public async Task<bool> UpdateUserAsync(int userId,int id, UserUpdateDTO dto)
         {
@@ -57,9 +42,7 @@ namespace QuitQ.Services.UserFeature
             if (user == null)
                 return false;
 
-            user.Name = dto.Name;
-            user.Phone = dto.Phone;
-            user.Gender = dto.Gender;
+            _mapper.Map(dto, user);
 
             await _context.SaveChangesAsync();
 

@@ -2,55 +2,35 @@
 using QuitQ.Data;
 using QuitQ.DTOs.SellerDTOs;
 using QuitQ.Models;
+using AutoMapper;
 
 namespace QuitQ.Services.SellerFeature
 {
     public class SellerService : ISellerService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public SellerService(AppDbContext context)
+        public SellerService(AppDbContext context,IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
         public async Task<IEnumerable<SellerResponseDTO>> GetAllSellersAsync()
         {
-            return await _context.Sellers
-                .Include(s => s.User)
-                .Select(s => new SellerResponseDTO
-                {
-                    SellerId = s.SellerId,
-                    UserId = s.UserId,
-                    StoreName = s.StoreName,
-                    GSTNumber = s.GSTNumber,
-                    BusinessEmail = s.BusinessEmail,
-                    AccountHolderName = s.AccountHolderName,
-                    AccountNumber = s.AccountNumber,
-                    IFSCCode = s.IFSCCode,
-                    BankName = s.BankName,
-                    UserName = s.User!.Name
-                })
-                .ToListAsync();
+            var sellers = await _context.Sellers
+     .Include(s => s.User)
+     .ToListAsync();
+
+            return _mapper.Map<List<SellerResponseDTO>>(sellers);
         }
         public async Task<SellerResponseDTO?> GetSellerByIdAsync(int id)
         {
-            return await _context.Sellers
-                .Include(s => s.User)
-                .Where(s => s.SellerId == id)
-                .Select(s => new SellerResponseDTO
-                {
-                    SellerId = s.SellerId,
-                    UserId = s.UserId,
-                    StoreName = s.StoreName,
-                    GSTNumber = s.GSTNumber,
-                    BusinessEmail = s.BusinessEmail,
-                    AccountHolderName = s.AccountHolderName,
-                    AccountNumber = s.AccountNumber,
-                    IFSCCode = s.IFSCCode,
-                    BankName = s.BankName,
-                    UserName = s.User!.Name
-                })
-                .FirstOrDefaultAsync();
+            var seller = await _context.Sellers
+    .Include(s => s.User)
+    .FirstOrDefaultAsync(s => s.SellerId == id);
+
+            return seller == null? null: _mapper.Map<SellerResponseDTO>(seller);
         }
         public async Task<SellerResponseDTO> CreateSellerAsync(int userId,SellerCreateDTO dto)
         {
@@ -59,37 +39,22 @@ namespace QuitQ.Services.SellerFeature
 
             if (existingSeller != null)
                 throw new Exception("Seller profile already exists.");
-            var seller = new Seller
-            {
-                UserId = userId,
-                StoreName = dto.StoreName,
-                GSTNumber = dto.GSTNumber,
-                BusinessEmail = dto.BusinessEmail,
-                AccountHolderName = dto.AccountHolderName,
-                AccountNumber = dto.AccountNumber,
-                IFSCCode = dto.IFSCCode,
-                BankName = dto.BankName
-            };
+            var seller = _mapper.Map<Seller>(dto);
+
+            seller.UserId = userId;
 
             _context.Sellers.Add(seller);
 
             await _context.SaveChangesAsync();
 
-            var user = await _context.Users.FindAsync(userId);
+            var savedSeller = await _context.Sellers
+     .Include(s => s.User)
+     .FirstOrDefaultAsync(s => s.SellerId == seller.SellerId);
 
-            return new SellerResponseDTO
-            {
-                SellerId = seller.SellerId,
-                UserId = seller.UserId,
-                StoreName = seller.StoreName,
-                GSTNumber = seller.GSTNumber,
-                BusinessEmail = seller.BusinessEmail,
-                AccountHolderName = seller.AccountHolderName,
-                AccountNumber = seller.AccountNumber,
-                IFSCCode = seller.IFSCCode,
-                BankName = seller.BankName,
-                UserName = user?.Name
-            };
+            if (savedSeller == null)
+                throw new Exception("Seller not found after creation.");
+
+            return _mapper.Map<SellerResponseDTO>(savedSeller);
         }
         public async Task<bool> UpdateSellerByUserIdAsync(int userId,SellerUpdateDTO dto)
         {
@@ -99,13 +64,7 @@ namespace QuitQ.Services.SellerFeature
             if (seller == null)
                 return false;
 
-            seller.StoreName = dto.StoreName;
-            seller.GSTNumber = dto.GSTNumber;
-            seller.BusinessEmail = dto.BusinessEmail;
-            seller.AccountHolderName = dto.AccountHolderName;
-            seller.AccountNumber = dto.AccountNumber;
-            seller.IFSCCode = dto.IFSCCode;
-            seller.BankName = dto.BankName;
+            _mapper.Map(dto, seller);
 
             await _context.SaveChangesAsync();
 

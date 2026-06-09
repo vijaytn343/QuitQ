@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace QuitQ.Services.AuthFeature
 {
@@ -13,13 +14,12 @@ namespace QuitQ.Services.AuthFeature
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
-
-        public AuthService(
-            AppDbContext context,
-            IConfiguration configuration)
+        private readonly ILogger<AuthService> _logger;
+        public AuthService( AppDbContext context, IConfiguration configuration, ILogger<AuthService> logger)
         {
             _context = context;
             _configuration = configuration;
+            _logger = logger;
         }
         public async Task<AuthResponseDTO> RegisterAsync(RegisterDTO dto)
         {
@@ -49,6 +49,9 @@ namespace QuitQ.Services.AuthFeature
             _context.Users.Add(user);
 
             await _context.SaveChangesAsync();
+            _logger.LogInformation(
+    "User {Email} registered successfully",
+    user.Email);
 
             return new AuthResponseDTO
             {
@@ -102,6 +105,8 @@ namespace QuitQ.Services.AuthFeature
 
             if (user == null)
                 throw new Exception("Invalid Email or Password");
+            if (!user.IsActive)
+                throw new Exception("Account is deactivated.");
 
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(
                 dto.Password,
@@ -113,6 +118,9 @@ namespace QuitQ.Services.AuthFeature
             string token = GenerateJwtToken(
                 user,
                 user.Role!.RoleName);
+            _logger.LogInformation(
+    "User {Email} logged in successfully",
+    user.Email);
 
             return new AuthResponseDTO
             {

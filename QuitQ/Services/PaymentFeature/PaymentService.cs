@@ -2,16 +2,20 @@
 using QuitQ.Data;
 using QuitQ.DTOs.PaymentDTOs;
 using QuitQ.Models;
-
+using AutoMapper;
+using Microsoft.Extensions.Logging;
 namespace QuitQ.Services.PaymentFeature
 {
     public class PaymentService: IPaymentService
     {
         private readonly AppDbContext _context;
-
-        public PaymentService(AppDbContext context)
+        private readonly IMapper _mapper;
+        private readonly ILogger<PaymentService> _logger;
+        public PaymentService(AppDbContext context,IMapper mapper, ILogger<PaymentService> logger)
         {
             _context = context;
+            _mapper = mapper;
+            _logger = logger;
         }
         public async Task<PaymentResponseDTO?> GetPaymentByIdAsync(int paymentId,int userId)
         {
@@ -21,16 +25,7 @@ namespace QuitQ.Services.PaymentFeature
             if (payment == null)
                 return null;
 
-            return new PaymentResponseDTO
-            {
-                PaymentId = payment.PaymentId,
-                OrderId = payment.OrderId,
-                PaymentMethod = payment.PaymentMethod,
-                Amount = payment.Amount,
-                PaymentStatus = payment.PaymentStatus,
-                PaymentDate = payment.PaymentDate,
-                TransactionId = payment.TransactionId
-            };
+            return _mapper.Map<PaymentResponseDTO>(payment);
         }
         public async Task<IEnumerable<PaymentResponseDTO>> GetPaymentsByOrderIdAsync(int orderId,int userId)
         {
@@ -39,16 +34,7 @@ namespace QuitQ.Services.PaymentFeature
          p.Order!.UserId == userId)
      .ToListAsync();
 
-            return payments.Select(payment => new PaymentResponseDTO
-            {
-                PaymentId = payment.PaymentId,
-                OrderId = payment.OrderId,
-                PaymentMethod = payment.PaymentMethod,
-                Amount = payment.Amount,
-                PaymentStatus = payment.PaymentStatus,
-                PaymentDate = payment.PaymentDate,
-                TransactionId = payment.TransactionId
-            });
+            return _mapper.Map<List<PaymentResponseDTO>>(payments);
         }
         public async Task<bool> UpdatePaymentStatusAsync(int paymentId,string paymentStatus,string? transactionId)
         {
@@ -68,6 +54,10 @@ namespace QuitQ.Services.PaymentFeature
             payment.PaymentDate = DateTime.Now;
 
             await _context.SaveChangesAsync();
+            _logger.LogInformation(
+    "Payment {PaymentId} updated to {Status}",
+    paymentId,
+    paymentStatus);
 
             return true;
         }
