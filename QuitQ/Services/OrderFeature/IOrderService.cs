@@ -1,4 +1,5 @@
 ﻿using QuitQ.DTOs.OrderDTOs;
+using QuitQ.DTOs.SellerDTOs;
 
 namespace QuitQ.Services.OrderFeature
 {
@@ -9,6 +10,7 @@ namespace QuitQ.Services.OrderFeature
         Task<IEnumerable<OrderResponseDTO>> GetOrdersByUserIdAsync(int userId);
 
         Task<OrderResponseDTO?> GetOrderByIdAsync(int orderId,int userId);
+        Task<SellerDashboardDTO> GetSellerDashboardAsync(int userId);
         Task<IEnumerable<SellerOrderResponseDTO>> GetSellerOrdersAsync(int userId);
 
         Task<bool> UpdateOrderStatusAsync(int orderId, string status);

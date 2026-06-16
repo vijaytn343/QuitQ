@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using QuitQ.Data;
 using QuitQ.DTOs.OrderDTOs;
+using QuitQ.DTOs.SellerDTOs;
 using QuitQ.Models;
 using QuitQ.Services.OrderFeature;
-using Microsoft.Extensions.Logging;
-
+using QuitQ.Services.EmailFeature;
 
 namespace QuitQ.Services.OrderFeature
 {
@@ -14,12 +15,14 @@ namespace QuitQ.Services.OrderFeature
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<OrderService> _logger;
+        private readonly IEmailService _emailService;
 
-        public OrderService( AppDbContext context,IMapper mapper, ILogger<OrderService> logger)
+        public OrderService( AppDbContext context,IMapper mapper, ILogger<OrderService> logger, IEmailService emailService)
         {
             _context = context;
             _mapper = mapper;
             _logger = logger;
+            _emailService = emailService;
         }
         public async Task<OrderResponseDTO> CreateOrderAsync(int userId, CreateOrderDTO dto)
         {
@@ -43,6 +46,11 @@ namespace QuitQ.Services.OrderFeature
 
                 if (address == null)
                     throw new Exception("Address not found.");
+                var user = await _context.Users
+    .FirstOrDefaultAsync(u => u.UserId == userId);
+
+                if (user == null)
+                    throw new Exception("User not found.");
 
                 decimal totalAmount = 0;
 
@@ -117,6 +125,27 @@ namespace QuitQ.Services.OrderFeature
     "Order {OrderId} created by User {UserId}",
     order.OrderId,
     userId);
+                try
+                {
+                    await _emailService.SendEmailAsync(
+                        user.Email,
+                        "Order Confirmation - QuitQ",
+                        $@"
+        <h2>Order Confirmed</h2>
+        <p>Hello {user.Name},</p>
+        <p>Your order #{order.OrderId} has been placed successfully.</p>
+        <p>Total Amount: ₹{order.TotalAmount}</p>
+        <p>Status: {order.OrderStatus}</p>
+        <p>Thank you for shopping with QuitQ.</p>
+        ");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Failed to send order confirmation email for Order {OrderId}",
+                        order.OrderId);
+                }
 
                 return await GetOrderByIdAsync(order.OrderId,userId)
                        ?? throw new Exception("Order creation failed.");
@@ -186,6 +215,31 @@ namespace QuitQ.Services.OrderFeature
     orderId,
     status);
             return true;
+        }
+        public async Task<SellerDashboardDTO>
+    GetSellerDashboardAsync(int userId)
+        {
+            var orderItems = await _context.OrderItems
+                .Include(oi => oi.Product)
+                    .ThenInclude(p => p!.Seller)
+                .Where(oi =>
+                    oi.Product!.Seller!.UserId == userId)
+                .ToListAsync();
+
+            return new SellerDashboardDTO
+            {
+                TotalOrders = orderItems
+                    .Select(oi => oi.OrderId)
+                    .Distinct()
+                    .Count(),
+
+                TotalProductsSold = orderItems
+                    .Sum(oi => oi.Quantity),
+
+                TotalRevenue = orderItems
+                    .Sum(oi =>
+                        oi.Quantity * oi.PriceAtPurchase)
+            };
         }
     }
 }

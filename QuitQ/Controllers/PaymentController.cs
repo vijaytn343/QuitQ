@@ -41,7 +41,7 @@ namespace QuitQ.Controllers
 
             return Ok(payments);
         }
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Seller")]
         [HttpPut("{paymentId}")]
         public async Task<IActionResult> UpdatePaymentStatus(int paymentId,string paymentStatus,string? transactionId)
         {

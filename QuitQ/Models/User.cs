@@ -36,5 +36,7 @@
 
         // One User -> Many Orders
         public ICollection<Order>? Orders { get; set; }
+        public ICollection<Review>? Reviews { get; set; }
+
     }
 }

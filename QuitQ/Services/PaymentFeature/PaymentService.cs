@@ -4,6 +4,7 @@ using QuitQ.DTOs.PaymentDTOs;
 using QuitQ.Models;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
+using QuitQ.Services.EmailFeature;
 namespace QuitQ.Services.PaymentFeature
 {
     public class PaymentService: IPaymentService
@@ -11,11 +12,17 @@ namespace QuitQ.Services.PaymentFeature
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<PaymentService> _logger;
-        public PaymentService(AppDbContext context,IMapper mapper, ILogger<PaymentService> logger)
+        private readonly IEmailService _emailService;
+        public PaymentService(
+     AppDbContext context,
+     IMapper mapper,
+     ILogger<PaymentService> logger,
+     IEmailService emailService)
         {
             _context = context;
             _mapper = mapper;
             _logger = logger;
+            _emailService = emailService;
         }
         public async Task<PaymentResponseDTO?> GetPaymentByIdAsync(int paymentId,int userId)
         {
@@ -58,6 +65,40 @@ namespace QuitQ.Services.PaymentFeature
     "Payment {PaymentId} updated to {Status}",
     paymentId,
     paymentStatus);
+            if (paymentStatus.Equals("Success",
+    StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    var order = await _context.Orders
+                        .Include(o => o.User)
+                        .FirstOrDefaultAsync(
+                            o => o.OrderId == payment.OrderId);
+
+                    if (order?.User != null)
+                    {
+                        await _emailService.SendEmailAsync(
+                            order.User.Email,
+                            "Payment Successful - QuitQ",
+                            $@"
+                <h2>Payment Successful</h2>
+                <p>Hello {order.User.Name},</p>
+                <p>Your payment has been received successfully.</p>
+                <p>Order ID: {order.OrderId}</p>
+                <p>Amount: ₹{payment.Amount}</p>
+                <p>Transaction ID: {payment.TransactionId}</p>
+                <p>Thank you for shopping with QuitQ.</p>
+                ");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Failed to send payment email for Payment {PaymentId}",
+                        paymentId);
+                }
+            }
 
             return true;
         }

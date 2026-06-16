@@ -1,12 +1,13 @@
-﻿using QuitQ.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using QuitQ.Data;
 using QuitQ.DTOs.AuthDTOs;
 using QuitQ.Models;
+using QuitQ.Services.EmailFeature;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace QuitQ.Services.AuthFeature
 {
@@ -15,11 +16,13 @@ namespace QuitQ.Services.AuthFeature
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthService> _logger;
-        public AuthService( AppDbContext context, IConfiguration configuration, ILogger<AuthService> logger)
+        private readonly IEmailService _emailService;
+        public AuthService( AppDbContext context, IConfiguration configuration, ILogger<AuthService> logger, IEmailService emailService)
         {
             _context = context;
             _configuration = configuration;
             _logger = logger;
+            _emailService = emailService;
         }
         public async Task<AuthResponseDTO> RegisterAsync(RegisterDTO dto)
         {
@@ -52,6 +55,24 @@ namespace QuitQ.Services.AuthFeature
             _logger.LogInformation(
     "User {Email} registered successfully",
     user.Email);
+            try
+            {
+                await _emailService.SendEmailAsync(
+                    user.Email,
+                    "Welcome to QuitQ",
+                    $@"
+        <h2>Welcome to QuitQ</h2>
+        <p>Hello {user.Name},</p>
+        <p>Your account has been created successfully.</p>
+        <p>Thank you for joining QuitQ.</p>
+        ");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Failed to send welcome email to {Email}",
+                    user.Email);
+            }
 
             return new AuthResponseDTO
             {

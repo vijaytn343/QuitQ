@@ -35,8 +35,9 @@ namespace QuitQ.Data
         public DbSet<OrderItem> OrderItems { get; set; }
 
         public DbSet<Payment> Payments { get; set; }
-    
-     protected override void OnModelCreating(ModelBuilder modelBuilder)
+        public DbSet<Review> Reviews { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
@@ -317,6 +318,39 @@ namespace QuitQ.Data
                       .WithMany(o => o.Payments)
                       .HasForeignKey(p => p.OrderId)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+            modelBuilder.Entity<Review>(entity =>
+            {
+                entity.HasKey(r => r.ReviewId);
+
+                entity.Property(r => r.Rating)
+                      .IsRequired();
+
+                entity.Property(r => r.Comment)
+                      .HasMaxLength(500);
+
+                entity.Property(r => r.CreatedAt)
+                      .HasDefaultValueSql("GETDATE()");
+
+                entity.Property(r => r.IsActive)
+                      .HasDefaultValue(true);
+
+                // Review -> User
+                entity.HasOne(r => r.User)
+                      .WithMany(u => u.Reviews)
+                      .HasForeignKey(r => r.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Review -> Product
+                entity.HasOne(r => r.Product)
+                      .WithMany(p => p.Reviews)
+                      .HasForeignKey(r => r.ProductId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // One review per user per product
+                entity.HasIndex(r =>
+                    new { r.UserId, r.ProductId })
+                    .IsUnique();
             });
 
             modelBuilder.Entity<Role>().HasData(

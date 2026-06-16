@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="QuitQ.Test/QuitQ.Test.csproj" Id="256f14a9-84cc-44f7-afc2-7f4e55954d9a" />
   <Project Path="QuitQ/QuitQ.csproj" />
 </Solution>

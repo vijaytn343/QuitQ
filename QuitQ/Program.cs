@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -7,6 +8,7 @@ using QuitQ.Data;
 using QuitQ.Mappings;
 using QuitQ.Middleware;
 using QuitQ.Services.AddressService;
+using QuitQ.Services.AdminFeature;
 using QuitQ.Services.AuthFeature;
 using QuitQ.Services.CartFeature;
 using QuitQ.Services.CategoryFeature;
@@ -16,8 +18,11 @@ using QuitQ.Services.ProductFeature;
 using QuitQ.Services.SellerFeature;
 using QuitQ.Services.SubCategoryFeature;
 using QuitQ.Services.UserFeature;
+using QuitQ.Services.AdminFeature;
 using System.Text;
-using Asp.Versioning;
+using QuitQ.Configurations;
+using QuitQ.Services.EmailFeature;
+using QuitQ.Services.InvoiceFeature;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +52,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     builder.Configuration["Jwt:Key"]!))
         };
     });
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
 
 // =====================
 // Services (DI)
@@ -62,6 +69,11 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<
+    IEmailService,
+    EmailService>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 
 // =====================
 // Exception Handler
@@ -120,6 +132,7 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 var app = builder.Build();
 

@@ -17,7 +17,7 @@ namespace QuitQ.Services.UserFeature
         public async Task<IEnumerable<UserResponseDTO>> GetAllUsersAsync()
         {
             var users = await _context.Users
-         .Include(u => u.Role)
+         .Include(u => u.Role).Where(u => u.IsActive)
          .ToListAsync();
 
             return _mapper.Map<List<UserResponseDTO>>(users);
@@ -50,7 +50,10 @@ namespace QuitQ.Services.UserFeature
         }
         public async Task<bool> DeleteUserAsync(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users
+    .FirstOrDefaultAsync(u =>
+        u.UserId == id &&
+        u.IsActive);
 
             if (user == null)
                 return false;

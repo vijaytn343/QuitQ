@@ -74,6 +74,18 @@ namespace QuitQ.Controllers
 
             return Ok(orders);
         }
+        [Authorize(Roles = "Seller")]
+        [HttpGet("seller-dashboard")]
+        public async Task<IActionResult> GetSellerDashboard()
+        {
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var dashboard =
+                await _orderService.GetSellerDashboardAsync(userId);
+
+            return Ok(dashboard);
+        }
         [Authorize(Roles = "Seller,Admin")]
         [HttpPut("{orderId}/status")]
         public async Task<IActionResult> UpdateStatus(
