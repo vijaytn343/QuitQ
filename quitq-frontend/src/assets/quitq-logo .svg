@@ -1,0 +1,35 @@
+<svg viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="markGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B5BFF"/>
+      <stop offset="100%" stop-color="#8B3BFF"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3B5BFF"/>
+      <stop offset="100%" stop-color="#8B3BFF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon mark: rounded square with shopping bag + arrow, evokes Q via tail -->
+  <g transform="translate(20,20)">
+    <rect x="0" y="0" width="160" height="160" rx="36" fill="url(#markGrad)"/>
+
+    <!-- shopping bag -->
+    <g transform="translate(38,34)">
+      <path d="M8 30 h68 l6 76 a10 10 0 0 1 -10 10 h-60 a10 10 0 0 1 -10 -10 z"
+            fill="#FFFFFF"/>
+      <path d="M22 30 v-8 a20 20 0 0 1 40 0 v8" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="30" cy="46" r="6" fill="url(#markGrad)"/>
+      <circle cx="54" cy="46" r="6" fill="url(#markGrad)"/>
+    </g>
+
+    <!-- tail forming the "Q" -->
+    <path d="M112 118 q34 18 34 40" fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="205" y="128" font-family="'Segoe UI', Arial, sans-serif" font-weight="800" font-size="86" fill="#1B2559" letter-spacing="1">Quit<tspan fill="url(#textGrad)">Q</tspan></text>
+
+  <!-- tagline -->
+  <text x="208" y="158" font-family="'Segoe UI', Arial, sans-serif" font-weight="500" font-size="20" fill="#6B7394" letter-spacing="3">SHOP SMARTER</text>
+</svg>
