@@ -4,6 +4,7 @@ using QuitQ.DTOs.ProductDTOs;
 using QuitQ.Models;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
+using QuitQ.DTOs.Common;
 namespace QuitQ.Services.ProductFeature
 {
     public class ProductService:IProductService
@@ -33,8 +34,8 @@ namespace QuitQ.Services.ProductFeature
 
             return _mapper.Map<List<ProductResponseDTO>>(products);
         }
-        public async Task<IEnumerable<ProductResponseDTO>> GetProductsAsync(
-    ProductFilterDTO filter)
+        public async Task<PagedResultDTO<ProductResponseDTO>>
+  GetProductsAsync(ProductFilterDTO filter)
         {
             var query = _context.Products
                 .Include(p => p.Seller)
@@ -53,12 +54,24 @@ namespace QuitQ.Services.ProductFeature
             // Search
             if (!string.IsNullOrWhiteSpace(filter.Keyword))
             {
+                var keyword = filter.Keyword.ToLower();
+
                 query = query.Where(p =>
-                    p.ProductName.ToLower().Contains(filter.Keyword.ToLower()) ||
+                    p.ProductName.ToLower().Contains(keyword) ||
+
                     (p.Description != null &&
-                     p.Description.ToLower().Contains(filter.Keyword.ToLower()))||
+                     p.Description.ToLower().Contains(keyword)) ||
+
                     (p.Brand != null &&
-                     p.Brand.ToLower().Contains(filter.Keyword.ToLower())));
+                     p.Brand.ToLower().Contains(keyword)) ||
+
+                    (p.SubCategory != null &&
+                     p.SubCategory.SubCategoryName.ToLower().Contains(keyword)) ||
+
+                    (p.SubCategory != null &&
+                     p.SubCategory.Category != null &&
+                     p.SubCategory.Category.CategoryName.ToLower().Contains(keyword))
+                );
             }
 
             // Category Filter
@@ -97,15 +110,60 @@ namespace QuitQ.Services.ProductFeature
                 query = query.Where(p =>
                     p.Price <= filter.MaxPrice.Value);
             }
+            // Sorting
+            switch (filter.SortBy)
+            {
+                case "priceAsc":
+                    query = query.OrderBy(p => p.Price);
+                    break;
+
+                case "priceDesc":
+                    query = query.OrderByDescending(p => p.Price);
+                    break;
+
+                case "name":
+                    query = query.OrderBy(p => p.ProductName);
+                    break;
+
+                case "newest":
+                    query = query.OrderByDescending(p => p.CreatedAt);
+                    break;
+
+                default:
+                    query = query.OrderByDescending(p => p.ProductId);
+                    break;
+            }
 
             // Pagination
+            var totalRecords =
+      await query.CountAsync();
+
             query = query
                 .Skip((filter.Page - 1) * filter.PageSize)
                 .Take(filter.PageSize);
 
-            var products = await query.ToListAsync();
+            var products =
+                await query.ToListAsync();
 
-            return _mapper.Map<List<ProductResponseDTO>>(products);
+            return new PagedResultDTO<ProductResponseDTO>
+            {
+                Items =
+                    _mapper.Map<List<ProductResponseDTO>>(products),
+
+                CurrentPage =
+                    filter.Page,
+
+                PageSize =
+                    filter.PageSize,
+
+                TotalRecords =
+                    totalRecords,
+
+                TotalPages =
+                    (int)Math.Ceiling(
+                        totalRecords /
+                        (double)filter.PageSize)
+            };
         }
         public async Task<ProductResponseDTO?> GetProductByIdAsync(int id)
         {
@@ -119,6 +177,65 @@ namespace QuitQ.Services.ProductFeature
          p.IsActive);
 
             return product == null? null: _mapper.Map<ProductResponseDTO>(product);
+        }
+        public async Task<List<ProductResponseDTO>> GetMyProductsAsync(int userId)
+        {
+            var products = await _context.Products
+                .Include(p => p.Inventory)
+                .Include(p => p.SubCategory)
+                    .ThenInclude(sc => sc.Category)
+                .Include(p => p.Seller)
+                .Where(p => p.Seller!.UserId == userId && p.IsActive)
+                .ToListAsync();
+
+            return products.Select(p => new ProductResponseDTO
+            {
+                ProductId = p.ProductId,
+                ProductName = p.ProductName,
+                Description = p.Description,
+                Price = p.Price,
+                Brand = p.Brand,
+                ImageUrl = p.ImageUrl,
+                IsActive = p.IsActive,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt,
+                QuantityAvailable =
+                    p.Inventory != null
+                        ? p.Inventory.QuantityAvailable
+                        : 0,
+
+                CategoryName =
+                    p.SubCategory?.Category?.CategoryName,
+
+                SubCategoryName =
+                    p.SubCategory?.SubCategoryName,
+
+                SellerName =
+                    p.Seller?.StoreName
+            }).ToList();
+        }
+        public async Task<IEnumerable<ProductResponseDTO>> GetRelatedProductsAsync(int productId)
+        {
+            // Get current product
+            var product = await _context.Products
+                .FirstOrDefaultAsync(p => p.ProductId == productId);
+
+            if (product == null)
+                return new List<ProductResponseDTO>();
+
+            // Get products from same subcategory
+            var relatedProducts = await _context.Products
+                .Include(p => p.SubCategory)
+                .ThenInclude(sc => sc.Category)
+                .Include(p => p.Inventory)
+                .Where(p =>
+                    p.ProductId != productId &&
+                    p.SubCategoryId == product.SubCategoryId &&
+                    p.IsActive)
+                .Take(4)
+                .ToListAsync();
+
+            return _mapper.Map<List<ProductResponseDTO>>(relatedProducts);
         }
         public async Task<ProductResponseDTO> CreateProductAsync(int userId,ProductCreateDTO dto)
         {
@@ -184,6 +301,7 @@ namespace QuitQ.Services.ProductFeature
       
 
             _mapper.Map(dto, product);
+            product.IsActive = true;
 
             product.UpdatedAt = DateTime.Now;
 

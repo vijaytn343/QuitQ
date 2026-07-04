@@ -1,12 +1,14 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using QuestPDF.Fluent;
 using QuitQ.Data;
+using QuitQ.Documents;
 using QuitQ.DTOs.OrderDTOs;
 using QuitQ.DTOs.SellerDTOs;
 using QuitQ.Models;
-using QuitQ.Services.OrderFeature;
 using QuitQ.Services.EmailFeature;
+using QuitQ.Services.OrderFeature;
 
 namespace QuitQ.Services.OrderFeature
 {
@@ -183,6 +185,25 @@ namespace QuitQ.Services.OrderFeature
                 .ToListAsync();
 
             return _mapper.Map<List<OrderResponseDTO>>(orders);
+        }
+        public async Task<byte[]> GenerateInvoiceAsync(
+    int orderId)
+        {
+            var order = await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.Address)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                .FirstOrDefaultAsync(
+                    o => o.OrderId == orderId);
+
+            if (order == null)
+                throw new Exception("Order not found");
+
+            var document =
+                new InvoiceDocument(order);
+
+            return document.GeneratePdf();
         }
         public async Task<IEnumerable<SellerOrderResponseDTO>>GetSellerOrdersAsync(int userId)
         {

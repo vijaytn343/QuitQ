@@ -41,18 +41,28 @@ namespace QuitQ.Services.EmailFeature
 
             using var smtp = new SmtpClient();
 
-            await smtp.ConnectAsync(
-                _settings.SmtpServer,
-                _settings.Port,
-                SecureSocketOptions.StartTls);
+            try
+            {
+                await smtp.ConnectAsync(
+                    _settings.SmtpServer,
+                    _settings.Port,
+                    SecureSocketOptions.Auto);
 
-            await smtp.AuthenticateAsync(
-                _settings.SenderEmail,
-                _settings.Password);
+                await smtp.AuthenticateAsync(
+     _settings.Username,
+     _settings.Password);
 
-            await smtp.SendAsync(email);
+                await smtp.SendAsync(email);
 
-            await smtp.DisconnectAsync(true);
+                await smtp.DisconnectAsync(true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("EMAIL ERROR:");
+                Console.WriteLine(ex.ToString());
+
+                throw;
+            }
         }
     }
 }

@@ -74,6 +74,19 @@ namespace QuitQ.Controllers
 
             return Ok(orders);
         }
+        [HttpGet("invoice/{orderId}")]
+        public async Task<IActionResult> DownloadInvoice(
+    int orderId)
+        {
+            var pdf =
+                await _orderService
+                    .GenerateInvoiceAsync(orderId);
+
+            return File(
+                pdf,
+                "application/pdf",
+                $"Invoice_{orderId}.pdf");
+        }
         [Authorize(Roles = "Seller")]
         [HttpGet("seller-dashboard")]
         public async Task<IActionResult> GetSellerDashboard()

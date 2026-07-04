@@ -6,6 +6,8 @@ namespace QuitQ.Services.CartFeature
     {
         Task<CartResponseDTO?> GetCartByUserIdAsync(int userId);
 
+        Task<bool> UpdateQuantityAsync(
+    UpdateCartQuantityDTO dto);
         Task<CartResponseDTO> AddToCartAsync(int userId, AddToCartDTO dto);
 
         Task<bool> UpdateCartItemAsync(int userId,int cartItemId, UpdateCartItemDTO dto);

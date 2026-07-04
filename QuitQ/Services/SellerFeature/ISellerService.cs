@@ -7,6 +7,9 @@ namespace QuitQ.Services.SellerFeature
         Task<IEnumerable<SellerResponseDTO>> GetAllSellersAsync();
 
         Task<SellerResponseDTO?> GetSellerByIdAsync(int id);
+        Task<List<SalesReportDTO>>
+    GetSalesReportAsync(int userId);
+        Task<SalesSummaryDTO> GetSalesSummaryAsync(int userId);
 
         Task<SellerResponseDTO> CreateSellerAsync(int userId,SellerCreateDTO dto);
 

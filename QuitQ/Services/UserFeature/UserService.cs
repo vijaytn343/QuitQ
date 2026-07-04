@@ -17,8 +17,9 @@ namespace QuitQ.Services.UserFeature
         public async Task<IEnumerable<UserResponseDTO>> GetAllUsersAsync()
         {
             var users = await _context.Users
-         .Include(u => u.Role).Where(u => u.IsActive)
-         .ToListAsync();
+    .Include(u => u.Role)
+    .Where(u => u.Role.RoleName == "Customer" && u.IsActive)
+    .ToListAsync();
 
             return _mapper.Map<List<UserResponseDTO>>(users);
         }

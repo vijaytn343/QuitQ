@@ -33,5 +33,29 @@ namespace QuitQ.Controllers
 
             return Ok(result);
         }
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(
+    ForgotPasswordDTO dto)
+        {
+            await _authService.ForgotPasswordAsync(dto.Email);
+
+            return Ok(new
+            {
+                Message = "If an account with that email exists, a password reset link has been sent."
+            });
+        }
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(
+    ResetPasswordDTO dto)
+        {
+            await _authService.ResetPasswordAsync(
+                dto.Token,
+                dto.NewPassword);
+
+            return Ok(new
+            {
+                Message = "Password reset successful."
+            });
+        }
     }
 }

@@ -39,6 +39,21 @@ namespace QuitQ.Controllers
 
             return Ok(cart);
         }
+        [HttpPut("update-quantity")]
+        public async Task<IActionResult>
+UpdateQuantity(
+    UpdateCartQuantityDTO dto)
+        {
+            var result =
+                await _cartService
+                .UpdateQuantityAsync(dto);
+
+            if (!result)
+                return BadRequest(
+                    "Stock limit reached");
+
+            return NoContent();
+        }
         [Authorize]
         [HttpPut("{cartItemId}")]
         public async Task<IActionResult> UpdateCartItem(int cartItemId,UpdateCartItemDTO dto)

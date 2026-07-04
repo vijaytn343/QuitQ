@@ -17,6 +17,8 @@ namespace QuitQ.Mappings
         {
             // Product -> ResponseDTO
             CreateMap<Product, ProductResponseDTO>()
+                .ForMember(dest => dest.SubCategoryId,
+        opt => opt.MapFrom(src => src.SubCategoryId))
                 .ForMember(dest => dest.QuantityAvailable,
                     opt => opt.MapFrom(src =>
                         src.Inventory != null
@@ -112,14 +114,18 @@ namespace QuitQ.Mappings
                     opt => opt.Ignore());
 
             CreateMap<Payment, PaymentResponseDTO>();
-
             CreateMap<OrderItem, OrderItemResponseDTO>()
-    .ForMember(dest => dest.ProductName,
-        opt => opt.MapFrom(src =>
-            src.Product!.ProductName))
-    .ForMember(dest => dest.SubTotal,
-        opt => opt.MapFrom(src =>
-            src.Quantity * src.PriceAtPurchase));
+                .ForMember(dest => dest.ProductName,
+                    opt => opt.MapFrom(src =>
+                        src.Product!.ProductName))
+
+                .ForMember(dest => dest.ImageUrl,
+                    opt => opt.MapFrom(src =>
+                        src.Product!.ImageUrl))
+
+                .ForMember(dest => dest.SubTotal,
+                    opt => opt.MapFrom(src =>
+                        src.Quantity * src.PriceAtPurchase));
 
             CreateMap<Order, OrderResponseDTO>()
                 .ForMember(dest => dest.CustomerName,

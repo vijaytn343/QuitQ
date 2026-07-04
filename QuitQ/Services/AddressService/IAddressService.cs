@@ -6,7 +6,9 @@ namespace QuitQ.Services.AddressService
     {
         Task<IEnumerable<AddressResponseDTO>> GetAllAddressesAsync();
 
-        Task<AddressResponseDTO?> GetAddressByIdAsync(int userId);
+        Task<AddressResponseDTO?> GetAddressByIdAsync(int userId); 
+        Task<IEnumerable<AddressResponseDTO>>
+GetMyAddressesAsync(int userId);
 
         Task<AddressResponseDTO> CreateAddressAsync(int userId, AddressCreateDTO dto);
 

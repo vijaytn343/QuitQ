@@ -37,6 +37,25 @@ namespace QuitQ.Controllers
 
             return Ok(product);
         }
+        [HttpGet("{id}/related")]
+        public async Task<IActionResult> GetRelatedProducts(int id)
+        {
+            var products = await _productService.GetRelatedProductsAsync(id);
+
+            return Ok(products);
+        }
+        [Authorize(Roles = "Seller")]
+        [HttpGet("my-products")]
+        public async Task<IActionResult> GetMyProducts()
+        {
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var products =
+                await _productService.GetMyProductsAsync(userId);
+
+            return Ok(products);
+        }
         [Authorize(Roles = "Seller")]
         [HttpPost]
         public async Task<IActionResult> Create(ProductCreateDTO dto)

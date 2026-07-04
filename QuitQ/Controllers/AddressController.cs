@@ -31,15 +31,13 @@ namespace QuitQ.Controllers
         [HttpGet("my-addresses")]
         public async Task<IActionResult> GetById()
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-            var address = await _addressService
-                .GetAddressByIdAsync( userId);
+            var addresses = await _addressService
+                .GetMyAddressesAsync(userId);
 
-            if (address == null)
-                return NotFound();
-
-            return Ok(address);
+            return Ok(addresses);
         }
 
         [Authorize]
@@ -83,7 +81,7 @@ namespace QuitQ.Controllers
             if (!deleted)
                 return NotFound();
 
-            return NoContent();
+            return NoContent(); 
         }
     }
 }

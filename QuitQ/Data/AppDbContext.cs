@@ -36,6 +36,7 @@ namespace QuitQ.Data
 
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -352,6 +353,7 @@ namespace QuitQ.Data
                     new { r.UserId, r.ProductId })
                     .IsUnique();
             });
+   
 
             modelBuilder.Entity<Role>().HasData(
                 new Role { RoleId = 1, RoleName = "Admin" },

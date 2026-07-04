@@ -27,6 +27,15 @@ namespace QuitQ.Services.AddressService
 
             return _mapper.Map<List<AddressResponseDTO>>(addresses);
         }
+        public async Task<IEnumerable<AddressResponseDTO>>
+GetMyAddressesAsync(int userId)
+        {
+            var addresses = await _context.Addresses
+                .Where(a => a.UserId == userId)
+                .ToListAsync();
+
+            return _mapper.Map<List<AddressResponseDTO>>(addresses);
+        }
         public async Task<AddressResponseDTO?> GetAddressByIdAsync(int userId)
         {
             var address = await _context.Addresses

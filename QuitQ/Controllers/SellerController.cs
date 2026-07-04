@@ -35,6 +35,56 @@ namespace QuitQ.Controllers
 
             return Ok(seller);
         }
+        [Authorize(Roles = "Seller")]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var sellers = await _sellerService.GetAllSellersAsync();
+
+            var seller = sellers.FirstOrDefault(
+                s => s.UserId == userId);
+
+            if (seller == null)
+                return NotFound();
+
+            return Ok(seller);
+        }
+        [Authorize(Roles = "Seller")]
+        [HttpGet("sales-report")]
+        public async Task<IActionResult>
+    GetSalesReport()
+        {
+            var userId =
+     int.Parse(
+         User.FindFirst(
+             ClaimTypes.NameIdentifier
+         )!.Value);
+            var report =
+                await _sellerService
+                    .GetSalesReportAsync(userId);
+
+            return Ok(report);
+        }
+        [Authorize(Roles = "Seller")]
+        [HttpGet("sales-summary")]
+        public async Task<IActionResult>
+    GetSalesSummary()
+        {
+            var userId =
+                int.Parse(
+                    User.FindFirst(
+                        ClaimTypes.NameIdentifier
+                    )!.Value);
+
+            var summary =
+                await _sellerService
+                .GetSalesSummaryAsync(userId);
+
+            return Ok(summary);
+        }
 
         [Authorize(Roles = "Seller")]
         [HttpPost]

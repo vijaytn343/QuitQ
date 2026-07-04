@@ -32,6 +32,112 @@ namespace QuitQ.Services.SellerFeature
 
             return seller == null? null: _mapper.Map<SellerResponseDTO>(seller);
         }
+        public async Task<List<SalesReportDTO>>
+    GetSalesReportAsync(int userId)
+        {
+            var seller = await _context.Sellers
+                .FirstOrDefaultAsync(
+                    s => s.UserId == userId);
+
+            if (seller == null)
+                return new List<SalesReportDTO>();
+
+            var report = await _context.OrderItems
+                .Include(oi => oi.Product)
+                .Where(oi =>
+                    oi.Product.SellerId ==
+                    seller.SellerId)
+                .GroupBy(oi =>
+                    oi.Product.ProductName)
+                .Select(g =>
+                    new SalesReportDTO
+                    {
+                        ProductName = g.Key,
+
+                        QuantitySold =
+                            g.Sum(x => x.Quantity),
+
+                        Revenue =
+                            g.Sum(x =>
+                                x.Quantity *
+                                x.PriceAtPurchase)
+                    })
+                .ToListAsync();
+
+            return report;
+        }
+        public async Task<SalesSummaryDTO>
+    GetSalesSummaryAsync(int userId)
+        {
+            var seller =
+                await _context.Sellers
+                .FirstOrDefaultAsync(s =>
+                    s.UserId == userId);
+
+            if (seller == null)
+                return new SalesSummaryDTO();
+            var orderItems =
+                await _context.OrderItems
+                .Include(o => o.Product)
+                .Include(o => o.Order)
+                .Where(o =>
+                    o.Product.SellerId ==
+                    seller.SellerId)
+                .ToListAsync();
+
+            var totalRevenue =
+     orderItems.Sum(x =>
+         x.Quantity * x.PriceAtPurchase);
+
+            var productsSold =
+                orderItems.Sum(x =>
+                    x.Quantity);
+
+            var weekStart =
+                DateTime.Now.Date.AddDays(-7);
+
+            var weeklyRevenue =
+                orderItems
+                .Where(x =>
+                    x.Order != null &&
+                    x.Order.OrderDate >= weekStart)
+                .Sum(x =>
+                    x.Quantity * x.PriceAtPurchase);
+
+            var monthlyRevenue =
+                orderItems
+                .Where(x =>
+                    x.Order != null &&
+                    x.Order.OrderDate.Month ==
+                    DateTime.Now.Month &&
+                    x.Order.OrderDate.Year ==
+                    DateTime.Now.Year)
+                .Sum(x =>
+                    x.Quantity * x.PriceAtPurchase);
+
+            var monthlyTopProduct =
+      orderItems
+      .Where(x =>
+          x.Order != null &&
+          x.Order.OrderDate.Month ==
+          DateTime.Now.Month &&
+          x.Order.OrderDate.Year ==
+          DateTime.Now.Year)
+      .GroupBy(x => x.Product.ProductName)
+      .OrderByDescending(g =>
+          g.Sum(x => x.Quantity))
+      .Select(g => g.Key)
+      .FirstOrDefault() ?? "N/A";
+
+            return new SalesSummaryDTO
+            {
+                TotalRevenue = totalRevenue,
+                WeeklyRevenue = weeklyRevenue,
+                MonthlyRevenue = monthlyRevenue,
+                ProductsSold = productsSold,
+                MonthlyTopProduct = monthlyTopProduct
+            };
+        }
         public async Task<SellerResponseDTO> CreateSellerAsync(int userId,SellerCreateDTO dto)
         {
             var existingSeller = await _context.Sellers

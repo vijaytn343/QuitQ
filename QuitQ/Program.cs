@@ -92,6 +92,16 @@ builder.Services.AddApiVersioning(options =>
 // =====================
 // Controllers
 // =====================
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReact",
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+      .AllowAnyHeader()
+      .AllowAnyMethod();
+        });
+});
 builder.Services.AddControllers();
 
 // =====================
@@ -150,7 +160,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseExceptionHandler();
+
 app.UseHttpsRedirection();
+app.UseCors("AllowReact");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

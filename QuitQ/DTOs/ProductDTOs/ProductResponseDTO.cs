@@ -22,7 +22,7 @@
         public int QuantityAvailable { get; set; }
 
         public string? CategoryName { get; set; }
-
+        public int SubCategoryId { get; set; }
         public string? SubCategoryName { get; set; }
 
         public string? SellerName { get; set; }

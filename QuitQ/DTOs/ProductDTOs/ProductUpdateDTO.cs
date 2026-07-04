@@ -20,7 +20,7 @@ namespace QuitQ.DTOs.ProductDTOs
         [StringLength(50,ErrorMessage = "Brand cannot exceed 50 characters")]
         public string? Brand { get; set; }
 
-        [Url(ErrorMessage = "Please enter a valid image URL")]
+       
         public string? ImageUrl { get; set; }
 
         public bool IsActive { get; set; }

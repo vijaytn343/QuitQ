@@ -7,5 +7,8 @@ namespace QuitQ.Services.AuthFeature
         Task<AuthResponseDTO> RegisterAsync(RegisterDTO dto);
 
         Task<AuthResponseDTO> LoginAsync(LoginDTO dto);
+        Task ForgotPasswordAsync(string email);
+
+        Task ResetPasswordAsync(string token, string newPassword);
     }
 }

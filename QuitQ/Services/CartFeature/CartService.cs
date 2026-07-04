@@ -89,6 +89,38 @@ namespace QuitQ.Services.CartFeature
             return await GetCartByUserIdAsync(userId)
                    ?? throw new Exception("Cart not found.");
         }
+        public async Task<bool>
+UpdateQuantityAsync(
+    UpdateCartQuantityDTO dto)
+        {
+            var item =
+                await _context.CartItems
+                .Include(c => c.Product)
+                .ThenInclude(p => p.Inventory)
+                .FirstOrDefaultAsync(c =>
+                    c.CartItemId ==
+                    dto.CartItemId);
+
+            if (item == null)
+                return false;
+
+            if (item.Product == null)
+                return false;
+
+            if (item.Product.Inventory == null)
+                return false;
+
+            if (dto.Quantity >
+                item.Product.Inventory.QuantityAvailable)
+                return false;
+
+            item.Quantity =
+                dto.Quantity;
+
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
         public async Task<CartResponseDTO?> GetCartByUserIdAsync(int userId)
         {
             var cart = await _context.Carts

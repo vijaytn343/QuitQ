@@ -48,7 +48,7 @@ namespace QuitQ.Services.AuthFeature
                 CreatedAt = DateTime.Now,
                 IsActive = true
             };
-
+           
             _context.Users.Add(user);
 
             await _context.SaveChangesAsync();
@@ -118,6 +118,30 @@ namespace QuitQ.Services.AuthFeature
             return new JwtSecurityTokenHandler()
                 .WriteToken(token);
         }
+        private string GeneratePasswordResetToken(User user)
+        {
+            var claims = new[]
+            {
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim("Purpose","PasswordReset")
+    };
+
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+
+            var creds = new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(15),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
         public async Task<AuthResponseDTO> LoginAsync(LoginDTO dto)
         {
             var user = await _context.Users
@@ -152,6 +176,89 @@ namespace QuitQ.Services.AuthFeature
                 Role = user.Role.RoleName,
                 Message = "Login Successful"
             };
+        }
+        public async Task ForgotPasswordAsync(string email)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            // Don't reveal whether the email exists
+            if (user == null)
+                return;
+
+            string token = GeneratePasswordResetToken(user);
+
+            string resetLink =
+                $"http://localhost:5173/reset-password?token={token}";
+
+            await _emailService.SendEmailAsync(
+                user.Email,
+                "Reset Your QuitQ Password",
+                $@"
+        <h2>Reset Password</h2>
+
+        <p>Hello {user.Name},</p>
+
+        <p>We received a request to reset your QuitQ password.</p>
+
+        <p>
+            <a href='{resetLink}'
+               style='background:#2563eb;
+                      color:white;
+                      padding:10px 20px;
+                      text-decoration:none;
+                      border-radius:5px;'>
+                Reset Password
+            </a>
+        </p>
+
+        <p>This link expires in 15 minutes.</p>
+
+        <p>If you didn't request this, you can safely ignore this email.</p>
+        ");
+        }
+        public async Task ResetPasswordAsync(string token, string newPassword)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+
+                ValidIssuer = _configuration["Jwt:Issuer"],
+                ValidAudience = _configuration["Jwt:Audience"],
+
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!))
+            };
+
+            var principal = tokenHandler.ValidateToken(
+                token,
+                validationParameters,
+                out _);
+
+            var purpose = principal.FindFirst("Purpose")?.Value;
+
+            if (purpose != "PasswordReset")
+                throw new Exception("Invalid password reset token.");
+
+            var email = principal.FindFirst(ClaimTypes.Email)?.Value;
+
+            if (string.IsNullOrEmpty(email))
+                throw new Exception("Invalid token.");
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+                throw new Exception("User not found.");
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            await _context.SaveChangesAsync();
         }
     }
 }
