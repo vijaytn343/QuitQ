@@ -4,3 +4,11 @@ obj/
 
 *.user
 *.suo
+# Local configuration
+appsettings.Development.json
+
+# Secrets
+*.env
+
+# Logs
+*.log
